@@ -17,6 +17,7 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QTableWidget>
+#include <QtWidgets/QToolButton>
 #include <QtWidgets/QWidget>
 
 QT_BEGIN_NAMESPACE
@@ -25,8 +26,12 @@ class Ui_MainWindow
 {
 public:
     QWidget *centralwidget;
-    QPushButton *pushButton;
     QTableWidget *tableWidget;
+    QPushButton *pushButton;
+    QPushButton *MonthView;
+    QToolButton *toolButton;
+    QToolButton *Prev;
+    QToolButton *Next;
     QMenuBar *menubar;
     QStatusBar *statusbar;
 
@@ -37,10 +42,6 @@ public:
         MainWindow->resize(800, 600);
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName("centralwidget");
-        pushButton = new QPushButton(centralwidget);
-        pushButton->setObjectName("pushButton");
-        pushButton->setGeometry(QRect(110, 50, 56, 18));
-        pushButton->setMouseTracking(true);
         tableWidget = new QTableWidget(centralwidget);
         if (tableWidget->columnCount() < 7)
             tableWidget->setColumnCount(7);
@@ -57,6 +58,25 @@ public:
         tableWidget->horizontalHeader()->setStretchLastSection(false);
         tableWidget->verticalHeader()->setVisible(false);
         tableWidget->verticalHeader()->setCascadingSectionResizes(false);
+        pushButton = new QPushButton(centralwidget);
+        pushButton->setObjectName("pushButton");
+        pushButton->setGeometry(QRect(25, 25, 150, 50));
+        pushButton->setMouseTracking(true);
+        MonthView = new QPushButton(centralwidget);
+        MonthView->setObjectName("MonthView");
+        MonthView->setGeometry(QRect(375, 25, 150, 50));
+        toolButton = new QToolButton(centralwidget);
+        toolButton->setObjectName("toolButton");
+        toolButton->setGeometry(QRect(200, 25, 150, 50));
+        toolButton->setPopupMode(QToolButton::ToolButtonPopupMode::DelayedPopup);
+        Prev = new QToolButton(centralwidget);
+        Prev->setObjectName("Prev");
+        Prev->setGeometry(QRect(550, 25, 50, 50));
+        Prev->setArrowType(Qt::ArrowType::LeftArrow);
+        Next = new QToolButton(centralwidget);
+        Next->setObjectName("Next");
+        Next->setGeometry(QRect(600, 25, 50, 50));
+        Next->setArrowType(Qt::ArrowType::RightArrow);
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName("menubar");
@@ -75,6 +95,10 @@ public:
     {
         MainWindow->setWindowTitle(QCoreApplication::translate("MainWindow", "MainWindow", nullptr));
         pushButton->setText(QCoreApplication::translate("MainWindow", "Create Task", nullptr));
+        MonthView->setText(QCoreApplication::translate("MainWindow", "Month View", nullptr));
+        toolButton->setText(QCoreApplication::translate("MainWindow", "Groups", nullptr));
+        Prev->setText(QCoreApplication::translate("MainWindow", "PushButton", nullptr));
+        Next->setText(QCoreApplication::translate("MainWindow", "PushButton", nullptr));
     } // retranslateUi
 
 };

@@ -3,8 +3,15 @@
 
 #include <QMainWindow>
 #include <QLabel>
-#include <QGridLayout>
 #include <QTableWidget>
+#include <QPushButton>
+#include <QDialog>
+#include <QLineEdit>
+#include <QDrag>
+#include <QScreen>
+#include <QDateEdit>
+#include <QComboBox>
+#include <QDate>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -21,7 +28,7 @@ public:
     ~MainWindow();
 
 protected:
-    //making the lable follow the user cursor
+    //making the label follow the user cursor
     void mouseMoveEvent(QMouseEvent *event) override {
         if(label && (dragging == true)){
             QPoint localPos = mapFromGlobal(QCursor::pos());
@@ -29,17 +36,27 @@ protected:
         }
     }
 
-    // make the label drop
+    //handles droping the task into the table
     void mousePressEvent(QMouseEvent *event) override
     {
-        if(label && (dragging == true) ){
+        if((label) && (dragging == true) ){
             QPoint pos = table->mapFromGlobal(QCursor::pos());
             QModelIndex cords = table->indexAt(pos);
             if(cords.isValid()){
                 int row = cords.row();
                 int column = cords.column();
                 if(!table->cellWidget(row, column)){
-                    table->setCellWidget(row, column, label);
+                    QPushButton *TaskVisualButton = new QPushButton("New Label", this);
+                    table->setCellWidget(row, column, TaskVisualButton);
+
+                    int dayofyear = trackingdate.dayOfYear();
+                    int dayofweek = trackingdate.dayOfWeek();
+                    int startofweek = dayofyear - dayofweek + 1;
+                    Task newTask;
+                    TaskStorage[startofweek + column][row] = newTask;
+                    connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { on_TaskButton_clicked(startofweek + column ,row); });
+                    delete label;
+                    label = nullptr;
                     dragging = false;
                 }
             }
@@ -48,12 +65,44 @@ protected:
 
 private slots:
     void on_pushButton_clicked();
+    void on_TaskButton_clicked(int column, int row);
+    void loadWeek(QDate date, bool prev, bool next);
+    void on_Prev_clicked();
+    void on_Next_clicked();
+    void saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit *Name, QLineEdit *Desc, QDateEdit *Start, QDateEdit *End, QComboBox *StatusBox, QComboBox *PriorityBox);
+    void deleteTaskInfo( QDialog *dialog, int column, int row);
+
 
 private:
     Ui::MainWindow *ui;
     QLabel *label = nullptr;
+
+    //keeping the table available to various functions
     QTableWidget *table = nullptr;
+
+    //tracking when the user is dragging something
     bool dragging = false;
+
+    //sets this private variable at start up to current date and will be used to track the date as use naviagtes through calender
+    QDate trackingdate = QDate::currentDate();
+
+
+    //The info a task will hold
+    struct Task {
+        QString name;
+        QString description;
+        QDate startDate;
+        QDate endDate;
+        enum Priority { Low, Mid, High};
+        Priority priority = Low;
+        enum Status { Unstarted, Working, Completed};
+        Status status = Unstarted;
+        QString prerequisite;
+        QString requisite;
+    };
+    void TaskInfoVisualEffect(QPushButton *TaskVisualButton, Task *taskToChange);
+    //The stroage holding all the tasks
+    Task TaskStorage[365][5];
 
 };
 
