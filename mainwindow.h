@@ -12,6 +12,7 @@
 #include <QDateEdit>
 #include <QComboBox>
 #include <QDate>
+#include <QVBoxLayout>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -31,8 +32,7 @@ protected:
     //making the label follow the user cursor
     void mouseMoveEvent(QMouseEvent *event) override {
         if(label && (dragging == true)){
-            QPoint localPos = mapFromGlobal(QCursor::pos());
-            label->move(localPos - QPoint(label->width() / 2, label->height() / 2));
+            label->move(mapFromGlobal(QCursor::pos()) - QPoint(label->width() / 2, label->height() / 2));
         }
     }
 
@@ -45,20 +45,29 @@ protected:
             if(cords.isValid()){
                 int row = cords.row();
                 int column = cords.column();
-                if(!table->cellWidget(row, column)){
-                    QPushButton *TaskVisualButton = new QPushButton("New Label", this);
+                int count = 0;
+                int dayofyear = trackingdate.dayOfYear();
+                int dayofweek = trackingdate.dayOfWeek();
+                int startofweek = dayofyear - dayofweek + 1;
+                int startofmonth = trackingdate.addDays(- trackingdate.day()).dayOfYear();
+                Task newTask;
+                QPushButton *TaskVisualButton = new QPushButton("New Task", this);
+                if(!table->cellWidget(row, column) && (monthViewActive == false)){
                     table->setCellWidget(row, column, TaskVisualButton);
-
-                    int dayofyear = trackingdate.dayOfYear();
-                    int dayofweek = trackingdate.dayOfWeek();
-                    int startofweek = dayofyear - dayofweek + 1;
-                    Task newTask;
                     TaskStorage[startofweek + column][row] = newTask;
                     connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { on_TaskButton_clicked(startofweek + column ,row); });
-                    delete label;
-                    label = nullptr;
-                    dragging = false;
+                }else if(monthViewActive){
+                    QWidget *container = table->cellWidget(row,column);
+                    container->layout()->addWidget(TaskVisualButton);
+                    while(!TaskStorage[startofmonth + (column * (row + 1))][count].name.isEmpty()){
+                        count++;
+                    }
+                    TaskStorage[startofmonth + (column * (row + 1))][count] = newTask;
+                    connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { on_TaskButton_clicked(startofmonth + (column * (row + 1)) ,count); });
                 }
+                delete label;
+                label = nullptr;
+                dragging = false;
             }
         }
     }
@@ -66,12 +75,13 @@ protected:
 private slots:
     void on_pushButton_clicked();
     void on_TaskButton_clicked(int column, int row);
-    void loadWeek(QDate date, bool prev, bool next);
+    void loadWeek();
     void on_Prev_clicked();
     void on_Next_clicked();
     void saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit *Name, QLineEdit *Desc, QDateEdit *Start, QDateEdit *End, QComboBox *StatusBox, QComboBox *PriorityBox);
     void deleteTaskInfo( QDialog *dialog, int column, int row);
 
+    void on_MonthView_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -82,6 +92,9 @@ private:
 
     //tracking when the user is dragging something
     bool dragging = false;
+
+    bool monthViewActive = false;
+    bool MonthChange = false;
 
     //sets this private variable at start up to current date and will be used to track the date as use naviagtes through calender
     QDate trackingdate = QDate::currentDate();

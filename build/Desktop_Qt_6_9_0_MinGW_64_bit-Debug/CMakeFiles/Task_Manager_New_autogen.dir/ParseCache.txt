@@ -200,17 +200,22 @@ C:/Users/Racab/OneDrive/Documents/Task_Manager_New/mainwindow.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/QMainWindow
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/QPushButton
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/QTableWidget
+ mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/QVBoxLayout
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qabstractbutton.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qabstractitemdelegate.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qabstractitemview.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qabstractscrollarea.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qabstractslider.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qabstractspinbox.h
+ mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qboxlayout.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qcombobox.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qdatetimeedit.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qdialog.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qframe.h
+ mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qgridlayout.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qlabel.h
+ mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qlayout.h
+ mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qlayoutitem.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qlineedit.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qmainwindow.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qpushbutton.h

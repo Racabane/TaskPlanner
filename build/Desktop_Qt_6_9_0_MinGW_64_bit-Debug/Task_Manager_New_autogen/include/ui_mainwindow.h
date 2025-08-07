@@ -40,6 +40,7 @@ public:
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName("MainWindow");
         MainWindow->resize(800, 600);
+        MainWindow->setMouseTracking(true);
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName("centralwidget");
         tableWidget = new QTableWidget(centralwidget);
@@ -51,8 +52,11 @@ public:
         tableWidget->setGeometry(QRect(30, 70, 541, 131));
         tableWidget->setMinimumSize(QSize(541, 131));
         tableWidget->setMouseTracking(true);
+        tableWidget->setTabletTracking(true);
         tableWidget->setAcceptDrops(true);
-        tableWidget->setAlternatingRowColors(true);
+        tableWidget->setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);
+        tableWidget->setAlternatingRowColors(false);
+        tableWidget->setSelectionMode(QAbstractItemView::SelectionMode::NoSelection);
         tableWidget->setRowCount(5);
         tableWidget->setColumnCount(7);
         tableWidget->horizontalHeader()->setStretchLastSection(false);
@@ -75,7 +79,7 @@ public:
         Prev->setArrowType(Qt::ArrowType::LeftArrow);
         Next = new QToolButton(centralwidget);
         Next->setObjectName("Next");
-        Next->setGeometry(QRect(600, 25, 50, 50));
+        Next->setGeometry(QRect(690, 20, 50, 50));
         Next->setArrowType(Qt::ArrowType::RightArrow);
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);

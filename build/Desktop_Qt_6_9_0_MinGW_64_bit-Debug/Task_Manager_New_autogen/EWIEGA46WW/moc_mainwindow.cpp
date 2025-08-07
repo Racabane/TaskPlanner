@@ -46,9 +46,6 @@ template <> constexpr inline auto MainWindow::qt_create_metaobjectdata<qt_meta_t
         "column",
         "row",
         "loadWeek",
-        "date",
-        "prev",
-        "next",
         "on_Prev_clicked",
         "on_Next_clicked",
         "saveTaskInfo",
@@ -63,7 +60,8 @@ template <> constexpr inline auto MainWindow::qt_create_metaobjectdata<qt_meta_t
         "QComboBox*",
         "StatusBox",
         "PriorityBox",
-        "deleteTaskInfo"
+        "deleteTaskInfo",
+        "on_MonthView_clicked"
     };
 
     QtMocHelpers::UintData qt_methods {
@@ -74,23 +72,23 @@ template <> constexpr inline auto MainWindow::qt_create_metaobjectdata<qt_meta_t
             { QMetaType::Int, 4 }, { QMetaType::Int, 5 },
         }}),
         // Slot 'loadWeek'
-        QtMocHelpers::SlotData<void(QDate, bool, bool)>(6, 2, QMC::AccessPrivate, QMetaType::Void, {{
-            { QMetaType::QDate, 7 }, { QMetaType::Bool, 8 }, { QMetaType::Bool, 9 },
-        }}),
+        QtMocHelpers::SlotData<void()>(6, 2, QMC::AccessPrivate, QMetaType::Void),
         // Slot 'on_Prev_clicked'
-        QtMocHelpers::SlotData<void()>(10, 2, QMC::AccessPrivate, QMetaType::Void),
+        QtMocHelpers::SlotData<void()>(7, 2, QMC::AccessPrivate, QMetaType::Void),
         // Slot 'on_Next_clicked'
-        QtMocHelpers::SlotData<void()>(11, 2, QMC::AccessPrivate, QMetaType::Void),
+        QtMocHelpers::SlotData<void()>(8, 2, QMC::AccessPrivate, QMetaType::Void),
         // Slot 'saveTaskInfo'
-        QtMocHelpers::SlotData<void(QDialog *, int, int, QLineEdit *, QLineEdit *, QDateEdit *, QDateEdit *, QComboBox *, QComboBox *)>(12, 2, QMC::AccessPrivate, QMetaType::Void, {{
-            { 0x80000000 | 13, 14 }, { QMetaType::Int, 4 }, { QMetaType::Int, 5 }, { 0x80000000 | 15, 16 },
-            { 0x80000000 | 15, 17 }, { 0x80000000 | 18, 19 }, { 0x80000000 | 18, 20 }, { 0x80000000 | 21, 22 },
-            { 0x80000000 | 21, 23 },
+        QtMocHelpers::SlotData<void(QDialog *, int, int, QLineEdit *, QLineEdit *, QDateEdit *, QDateEdit *, QComboBox *, QComboBox *)>(9, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { 0x80000000 | 10, 11 }, { QMetaType::Int, 4 }, { QMetaType::Int, 5 }, { 0x80000000 | 12, 13 },
+            { 0x80000000 | 12, 14 }, { 0x80000000 | 15, 16 }, { 0x80000000 | 15, 17 }, { 0x80000000 | 18, 19 },
+            { 0x80000000 | 18, 20 },
         }}),
         // Slot 'deleteTaskInfo'
-        QtMocHelpers::SlotData<void(QDialog *, int, int)>(24, 2, QMC::AccessPrivate, QMetaType::Void, {{
-            { 0x80000000 | 13, 14 }, { QMetaType::Int, 4 }, { QMetaType::Int, 5 },
+        QtMocHelpers::SlotData<void(QDialog *, int, int)>(21, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { 0x80000000 | 10, 11 }, { QMetaType::Int, 4 }, { QMetaType::Int, 5 },
         }}),
+        // Slot 'on_MonthView_clicked'
+        QtMocHelpers::SlotData<void()>(22, 2, QMC::AccessPrivate, QMetaType::Void),
     };
     QtMocHelpers::UintData qt_properties {
     };
@@ -116,11 +114,12 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         switch (_id) {
         case 0: _t->on_pushButton_clicked(); break;
         case 1: _t->on_TaskButton_clicked((*reinterpret_cast< std::add_pointer_t<int>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<int>>(_a[2]))); break;
-        case 2: _t->loadWeek((*reinterpret_cast< std::add_pointer_t<QDate>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<bool>>(_a[2])),(*reinterpret_cast< std::add_pointer_t<bool>>(_a[3]))); break;
+        case 2: _t->loadWeek(); break;
         case 3: _t->on_Prev_clicked(); break;
         case 4: _t->on_Next_clicked(); break;
         case 5: _t->saveTaskInfo((*reinterpret_cast< std::add_pointer_t<QDialog*>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<int>>(_a[2])),(*reinterpret_cast< std::add_pointer_t<int>>(_a[3])),(*reinterpret_cast< std::add_pointer_t<QLineEdit*>>(_a[4])),(*reinterpret_cast< std::add_pointer_t<QLineEdit*>>(_a[5])),(*reinterpret_cast< std::add_pointer_t<QDateEdit*>>(_a[6])),(*reinterpret_cast< std::add_pointer_t<QDateEdit*>>(_a[7])),(*reinterpret_cast< std::add_pointer_t<QComboBox*>>(_a[8])),(*reinterpret_cast< std::add_pointer_t<QComboBox*>>(_a[9]))); break;
         case 6: _t->deleteTaskInfo((*reinterpret_cast< std::add_pointer_t<QDialog*>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<int>>(_a[2])),(*reinterpret_cast< std::add_pointer_t<int>>(_a[3]))); break;
+        case 7: _t->on_MonthView_clicked(); break;
         default: ;
         }
     }
@@ -173,14 +172,14 @@ int MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 7)
+        if (_id < 8)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 7;
+        _id -= 8;
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 7)
+        if (_id < 8)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 7;
+        _id -= 8;
     }
     return _id;
 }
