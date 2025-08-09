@@ -7,7 +7,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     //Loads the ui of the application
     ui->setupUi(this);
-    this->setStyleSheet("background-color: #8fbc8f");
+    this->setStyleSheet("background-color: rgb(143,188,143)");
 
 
     //sizes the main window based on the users screen
@@ -18,6 +18,7 @@ MainWindow::MainWindow(QWidget *parent)
     table = ui->tableWidget;
     QPushButton *CreateButton = ui->pushButton;
     QPushButton *MonthButton = ui->MonthView;
+
     QToolButton *GroupsDrop = ui->toolButton;
     QToolButton *LeftArrow = ui->Prev;
     QToolButton *RightArrow = ui->Next;
@@ -50,6 +51,152 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+//this function is for loading the content in the table for the viewed week
+void MainWindow::loadWeek(){
+    //clears all the old content of the table so it does not get in the way
+    table->clearContents();
+
+    //Updates main window to show the month thats being viewed
+    ui->MonthDisplay->setText(getMonthName(trackingdate));
+
+    //sets the week to the first day of the week
+    trackingdate = trackingdate.addDays(-trackingdate.dayOfWeek() +1);
+
+    //loops through the columns and rows of the table to fill in any tasks set for thise days
+    for(int column = 0; column < 7; column++){
+        //sets the header of the columns to have the numerical date of the month
+        QTableWidgetItem *headerItem = new QTableWidgetItem(QString::number(trackingdate.addDays(column).day()));
+        table->setHorizontalHeaderItem(column, headerItem);
+
+        for(int row = 0; row < 5; row++){
+            //if a task is found in task storage the matches the date that the table is currently veiwing
+            //places it as a button and connects the button to the releavent task
+            if(!TaskStorage[trackingdate.dayOfYear() + column][row].name.isEmpty()){
+                QPushButton *TaskVisualButton = new QPushButton(TaskStorage[trackingdate.dayOfYear() + column][row].name);
+                table->setCellWidget(row, column, TaskVisualButton);
+                TaskInfoVisualEffect(TaskVisualButton, &TaskStorage[trackingdate.dayOfYear() + column][row]);
+                connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { on_TaskButton_clicked(trackingdate.dayOfYear() + column, row); });
+            }
+        }
+    }
+}
+
+void MainWindow::on_MonthView_clicked()
+{
+    if(monthViewActive == false || MonthChange == true){
+        monthViewActive = true;
+        table->clearContents();
+        ui->MonthView->setText("Week View");
+
+        QDate date = trackingdate;
+        ui->MonthDisplay->setText(getMonthName(date));
+
+        int startofMonth = date.dayOfYear() - date.day() + 1;
+        switch(date.addDays(date.day() + 1).dayOfWeek()){
+        case 7:
+            table->setHorizontalHeaderLabels(QStringList({"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"}));
+            break;
+        case 1:
+            table->setHorizontalHeaderLabels(QStringList({"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday", "Sunday"}));
+            break;
+        case 2:
+            table->setHorizontalHeaderLabels(QStringList({"Tuesday","Wednesday","Thursday","Friday","Saturday", "Sunday", "Monday"}));
+            break;
+        case 3:
+            table->setHorizontalHeaderLabels(QStringList({"Wednesday","Thursday","Friday","Saturday", "Sunday", "Monday", "Tuesday"}));
+            break;
+        case 4:
+            table->setHorizontalHeaderLabels(QStringList({"Thursday","Friday","Saturday", "Sunday", "Monday", "Tuesday", "Wednesday"}));
+            break;
+        case 5:
+            table->setHorizontalHeaderLabels(QStringList({"Friday", "Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"}));
+            break;
+        case 6:
+            table->setHorizontalHeaderLabels(QStringList({"Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"}));
+            break;
+        }
+
+        int week = 0;
+        int day = 0;
+
+        for(int i = 0; i < date.daysInMonth(); i++){
+            QWidget *container = new QWidget();
+            QVBoxLayout *layoutOfContainer = new QVBoxLayout(container);
+            container->setStyleSheet("background-color:  rgb(220,240,230)");
+
+            QLabel *Daynumber = new QLabel();
+            Daynumber->setText(QString::number(i + 1));
+            layoutOfContainer->addWidget(Daynumber);
+
+            for(int k = 0; k < 5; k++){
+                if(!TaskStorage[startofMonth + i][k].name.isEmpty()){
+                    QPushButton *TaskVisualButton = new QPushButton(TaskStorage[(startofMonth + i)][k].name);
+                    layoutOfContainer->addWidget(TaskVisualButton);
+                    Task *taskToChange = &TaskStorage[(startofMonth + i)][k];
+                    TaskInfoVisualEffect(TaskVisualButton, taskToChange);
+                    connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { on_TaskButton_clicked(startofMonth + i, k); });
+                }
+            }
+            table->setCellWidget(week, day, container);
+            day++;
+            if(day == 7){
+                day = 0;
+                week++;
+            }
+        }
+    }else{
+        monthViewActive = false;
+        ui->MonthView->setText("Month View");
+        loadWeek();
+    }
+}
+
+//this function is to load the previous week/month depending on view
+void MainWindow::on_Prev_clicked()
+{
+    //period of time it should stick to is the first day of the current year and the last day of the year we want to store ie if i want two years the current and next should not go past end of second year december 31
+    int days = trackingdate.dayOfYear() + (365 * (trackingdate.year() - QDate::currentDate().year()));
+
+    if(monthViewActive == false){
+        if(days <=  8){
+            trackingdate = trackingdate.addDays( 8 - days);
+        }
+        trackingdate = trackingdate.addDays( -7);
+        loadWeek();
+    }else{
+        if(days >= 32){
+            trackingdate = trackingdate.addDays( - trackingdate.daysInMonth() - trackingdate.day() + 1);
+            MonthChange = true;
+            on_MonthView_clicked();
+            MonthChange = false;
+        }
+    }
+}
+
+//this function is to load the next week/month depending on view
+void MainWindow::on_Next_clicked()
+{
+    //period of time it should stick to is the first day of the current year and the last day of the year we want to store ie if i want two years the current and next should not go past end of second year december 31
+    int days = trackingdate.dayOfYear() + (365 * (trackingdate.year() - QDate::currentDate().year()));
+
+    if(monthViewActive == false){
+        if(days >  365 - 13){
+            trackingdate = trackingdate.addDays( - (days - (365 - 14)));
+        }
+        trackingdate = trackingdate.addDays(7);
+        loadWeek();
+    }else{
+        if(days <= 365 - 32){
+            trackingdate = trackingdate.addDays( trackingdate.daysInMonth() - trackingdate.day() + 1);
+            MonthChange = true;
+            on_MonthView_clicked();
+            MonthChange = false;
+        }
+
+    }
+}
+
+
 //this function is for when the create task button is clicked to create a label to place in the table
 void MainWindow::on_pushButton_clicked()
 {
@@ -71,98 +218,6 @@ void MainWindow::on_pushButton_clicked()
     dragging = true;
 }
 
-//this function is for loading the content in the table for the viewed week
-void MainWindow::loadWeek(){
-    //clears all the old content of the table so it does not get in the way
-    table->clearContents();
-
-
-    QDate date = trackingdate;
-
-    //
-    int dayofyear = date.dayOfYear();
-    int dayofweek = date.dayOfWeek();
-    int startofweek = dayofyear - dayofweek + 1;
-
-    //loops through the columns of the table
-    for(int i = 0; i < 7; i++){
-        //sets the header of the columns to have the numerical date of the month
-        QTableWidgetItem *headerItem = new QTableWidgetItem(QString::number(date.addDays( - dayofweek + 1 + i).day()));
-        table->setHorizontalHeaderItem(i, headerItem);
-
-        //loops through the rows of the table
-        for(int j = 0; j < 5; j++){
-            //if a task is found in task storage the matches the date that the table is currently veiwing
-            //places it as a button and connects the button to the releavent task
-            if(!TaskStorage[startofweek + i][j].name.isEmpty()){
-                QPushButton *TaskVisualButton = new QPushButton(TaskStorage[(startofweek + i)][j].name);
-                table->setCellWidget(j, i, TaskVisualButton);
-                Task *taskToChange = &TaskStorage[(startofweek + i)][j];
-                TaskInfoVisualEffect(TaskVisualButton, taskToChange);
-                connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { on_TaskButton_clicked(startofweek + i, j); });
-            }
-        }
-    }
-}
-
-void MainWindow::TaskInfoVisualEffect(QPushButton *TaskVisualButton, Task *taskToChange){
-   QString base =" "
-        "QPushButton{"
-        "color: black; "
-        "border-style: solid;"
-        "border-radius: 10px;"
-        "padding: 10px;"
-        "border-width: 10px;}"
-        "QPushButton:pressed {"
-        "color: black;"
-        "background-color: red;}";
-
-    if(taskToChange->priority == Task::Low){
-        base += "QPushButton{background-color: rgb(70,220,50);}";
-    } else if(taskToChange->priority == Task::Mid){
-        base += "QPushButton{background-color: rgb(230,250,0);}";
-    } else{
-        base += "QPushButton{background-color: rgb(220,70,50);}";
-    }
-
-    if(taskToChange->status == Task::Unstarted){
-       base  += "QPushButton{border-color: rgb(170,170,160);;}";
-    } else if(taskToChange->status == Task::Working){
-        base += "QPushButton{border-color: rgb(110,110,105);;}";
-    } else{
-        base += "QPushButton{border-color: rgb(60,60,60);;}";
-    }
-    TaskVisualButton->setStyleSheet(base);
-}
-
-//this function is to load the previous week/month depending on view
-void MainWindow::on_Prev_clicked()
-{
-    if(monthViewActive == false){
-        trackingdate = trackingdate.addDays(-(trackingdate.dayOfWeek() - 1) -7);
-        loadWeek();
-    }else{
-        trackingdate = trackingdate.addDays( - trackingdate.daysInMonth() - trackingdate.day() + 1);
-        MonthChange = true;
-        on_MonthView_clicked();
-        MonthChange = false;
-    }
-}
-
-//this function is to load the next week/month depending on view
-void MainWindow::on_Next_clicked()
-{
-    if(monthViewActive == false){
-        trackingdate = trackingdate.addDays(-(trackingdate.dayOfWeek() - 1) + 7);
-        loadWeek();
-    }else{
-        trackingdate = trackingdate.addDays( trackingdate.daysInMonth() - trackingdate.day() + 1);
-        MonthChange = true;
-        on_MonthView_clicked();
-        MonthChange = false;
-    }
-}
-
 //This fuction is to open the edit menu for editing tasks
 void MainWindow::on_TaskButton_clicked(int column, int row)
 {
@@ -174,6 +229,7 @@ void MainWindow::on_TaskButton_clicked(int column, int row)
     dialog->setWindowModality(Qt::WindowModality::ApplicationModal);
     dialog->setMinimumHeight(320);
     dialog->setMinimumWidth(480);
+    dialog->setStyleSheet("QDialog {background-color: rgb(143,188,143)}");
 
     //Tells the user to enter task name in the text field
     QLabel *LabelName = new QLabel();
@@ -311,7 +367,7 @@ void MainWindow::saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit 
 
     if(StatusBox->currentText() == "Unstarted"){
         selectedTask->status = Task::Unstarted;
-    } else if(PriorityBox->currentText() == "Working"){
+    } else if(StatusBox->currentText() == "Working"){
         selectedTask->status = Task::Working;
     } else{
         selectedTask->status = Task::Completed;
@@ -347,53 +403,54 @@ void MainWindow::deleteTaskInfo(QDialog *dialog, int column, int row){
 }
 
 
-void MainWindow::on_MonthView_clicked()
-{
-    if(monthViewActive == false || MonthChange == true){
-        monthViewActive = true;
-        table->clearContents();
-        ui->MonthView->setText("Week View");
-
-        QDate date = trackingdate;
-
-        //
-        int dayofyear = date.dayOfYear();
-        int dayofweek = date.dayOfWeek();
-        int startofMonth = dayofyear - date.day() + 1;
-        int startofweek = dayofyear - dayofweek + 1;
-        int week = 0;
-        int day = 0;
-
-        for(int i = 0; i < date.daysInMonth(); i++){
-            QWidget *container = new QWidget();
-            QVBoxLayout *layoutOfContainer = new QVBoxLayout(container);
-            container->setStyleSheet("background-color:  rgb(220,240,230)");
-            QTableWidgetItem *headerItem = new QTableWidgetItem(QString::number(i + 1));
-            table->setHorizontalHeaderItem(i, headerItem);
-            day++;
-            if(day == 7){
-                day = 0;
-                week++;
-            }
-            QLabel *Daynumber = new QLabel();
-            Daynumber->setText(QString::number(i + 1));
-            layoutOfContainer->addWidget(Daynumber);
-
-            for(int k = 0; k < 5; k++){
-                if(!TaskStorage[startofMonth + i][k].name.isEmpty()){
-                    QPushButton *TaskVisualButton = new QPushButton(TaskStorage[(startofMonth + i)][k].name);
-                    layoutOfContainer->addWidget(TaskVisualButton);
-                    Task *taskToChange = &TaskStorage[(startofMonth + i)][k];
-                    // TaskInfoVisualEffect(TaskVisualButton, taskToChange);
-                    connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { on_TaskButton_clicked(startofMonth + i, k); });
-                }
-            }
-            table->setCellWidget(week, day, container);
-        }
-    }else{
-        monthViewActive = false;
-        ui->MonthView->setText("Month View");
-        loadWeek();
+QString MainWindow::getMonthName(QDate date){
+    switch(date.month()){
+    case 1:
+        return "January";
+    case 2:
+        return "February";
+    case 3:
+        return "March";
+    case 4:
+        return "April";
+    case 5:
+        return "May";
+    case 6:
+        return "June";
+    case 7:
+        return "July";
+    case 8:
+        return "August";
+    case 9:
+        return "September";
+    case 10:
+        return "October";
+    case 11:
+        return "November";
+    case 12:
+        return "December";
+    default:
+        return "Month";
     }
 }
 
+void MainWindow::TaskInfoVisualEffect(QPushButton *TaskVisualButton, Task *taskToChange){
+    QString base ="QPushButton{ color: black; } ";
+
+    if(taskToChange->priority == Task::Low){
+        base += "QPushButton{background-color: rgb(70,220,50);} QPushButton:hover {background-color: rgb(90,180,90); }";
+    } else if(taskToChange->priority == Task::Mid){
+        base += "QPushButton{background-color: rgb(230,250,0);} QPushButton:hover {background-color: rgb(200,220,0); }";
+    } else{
+        base += "QPushButton{background-color: rgb(220,70,50);} QPushButton:hover {background-color: rgb(190,90,90); }";
+    }
+
+    if(taskToChange->status == Task::Unstarted){
+        base  += "QPushButton{border-color: rgb(170,170,160);;}";
+    } else if(taskToChange->status == Task::Working){
+        base += "QPushButton{border-color: rgb(110,110,105);;}";
+    } else{
+        base += "QPushButton{border-color: rgb(60,60,60);;}";
+    }
+    TaskVisualButton->setStyleSheet(base);
+}

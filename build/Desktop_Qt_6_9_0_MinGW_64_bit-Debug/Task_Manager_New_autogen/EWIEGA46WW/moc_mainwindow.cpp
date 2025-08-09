@@ -61,7 +61,9 @@ template <> constexpr inline auto MainWindow::qt_create_metaobjectdata<qt_meta_t
         "StatusBox",
         "PriorityBox",
         "deleteTaskInfo",
-        "on_MonthView_clicked"
+        "on_MonthView_clicked",
+        "getMonthName",
+        "date"
     };
 
     QtMocHelpers::UintData qt_methods {
@@ -89,6 +91,10 @@ template <> constexpr inline auto MainWindow::qt_create_metaobjectdata<qt_meta_t
         }}),
         // Slot 'on_MonthView_clicked'
         QtMocHelpers::SlotData<void()>(22, 2, QMC::AccessPrivate, QMetaType::Void),
+        // Slot 'getMonthName'
+        QtMocHelpers::SlotData<QString(QDate)>(23, 2, QMC::AccessPrivate, QMetaType::QString, {{
+            { QMetaType::QDate, 24 },
+        }}),
     };
     QtMocHelpers::UintData qt_properties {
     };
@@ -120,6 +126,8 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         case 5: _t->saveTaskInfo((*reinterpret_cast< std::add_pointer_t<QDialog*>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<int>>(_a[2])),(*reinterpret_cast< std::add_pointer_t<int>>(_a[3])),(*reinterpret_cast< std::add_pointer_t<QLineEdit*>>(_a[4])),(*reinterpret_cast< std::add_pointer_t<QLineEdit*>>(_a[5])),(*reinterpret_cast< std::add_pointer_t<QDateEdit*>>(_a[6])),(*reinterpret_cast< std::add_pointer_t<QDateEdit*>>(_a[7])),(*reinterpret_cast< std::add_pointer_t<QComboBox*>>(_a[8])),(*reinterpret_cast< std::add_pointer_t<QComboBox*>>(_a[9]))); break;
         case 6: _t->deleteTaskInfo((*reinterpret_cast< std::add_pointer_t<QDialog*>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<int>>(_a[2])),(*reinterpret_cast< std::add_pointer_t<int>>(_a[3]))); break;
         case 7: _t->on_MonthView_clicked(); break;
+        case 8: { QString _r = _t->getMonthName((*reinterpret_cast< std::add_pointer_t<QDate>>(_a[1])));
+            if (_a[0]) *reinterpret_cast< QString*>(_a[0]) = std::move(_r); }  break;
         default: ;
         }
     }
@@ -172,14 +180,14 @@ int MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 8)
+        if (_id < 9)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 8;
+        _id -= 9;
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 8)
+        if (_id < 9)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 8;
+        _id -= 9;
     }
     return _id;
 }

@@ -46,10 +46,8 @@ protected:
                 int row = cords.row();
                 int column = cords.column();
                 int count = 0;
-                int dayofyear = trackingdate.dayOfYear();
-                int dayofweek = trackingdate.dayOfWeek();
-                int startofweek = dayofyear - dayofweek + 1;
-                int startofmonth = trackingdate.addDays(- trackingdate.day()).dayOfYear();
+                int startofweek =  trackingdate.dayOfYear() - trackingdate.dayOfWeek() + 1;
+                int startofmonth = trackingdate.addDays(-trackingdate.day()).dayOfYear();
                 Task newTask;
                 QPushButton *TaskVisualButton = new QPushButton("New Task", this);
                 if(!table->cellWidget(row, column) && (monthViewActive == false)){
@@ -57,13 +55,18 @@ protected:
                     TaskStorage[startofweek + column][row] = newTask;
                     connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { on_TaskButton_clicked(startofweek + column ,row); });
                 }else if(monthViewActive){
-                    QWidget *container = table->cellWidget(row,column);
-                    container->layout()->addWidget(TaskVisualButton);
-                    while(!TaskStorage[startofmonth + (column * (row + 1))][count].name.isEmpty()){
-                        count++;
+                    int GridDay = startofmonth + (column + (row * 7) + 1);
+                    if((column + (row * 7) + 1) < trackingdate.daysInMonth() + 1){
+                        while(!TaskStorage[GridDay][count].name.isEmpty()){
+                            count++;
+                        }
+                        if(count != 5){
+                            QWidget *container = table->cellWidget(row,column);
+                            container->layout()->addWidget(TaskVisualButton);
+                            TaskStorage[GridDay][count] = newTask;
+                            connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { on_TaskButton_clicked(GridDay ,count); });
+                        }
                     }
-                    TaskStorage[startofmonth + (column * (row + 1))][count] = newTask;
-                    connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { on_TaskButton_clicked(startofmonth + (column * (row + 1)) ,count); });
                 }
                 delete label;
                 label = nullptr;
@@ -82,6 +85,7 @@ private slots:
     void deleteTaskInfo( QDialog *dialog, int column, int row);
 
     void on_MonthView_clicked();
+    QString getMonthName(QDate date);
 
 private:
     Ui::MainWindow *ui;
@@ -95,6 +99,7 @@ private:
 
     bool monthViewActive = false;
     bool MonthChange = false;
+
 
     //sets this private variable at start up to current date and will be used to track the date as use naviagtes through calender
     QDate trackingdate = QDate::currentDate();

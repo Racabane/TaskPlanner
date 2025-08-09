@@ -12,6 +12,7 @@
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QHeaderView>
+#include <QtWidgets/QLabel>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QPushButton>
@@ -32,6 +33,7 @@ public:
     QToolButton *toolButton;
     QToolButton *Prev;
     QToolButton *Next;
+    QLabel *MonthDisplay;
     QMenuBar *menubar;
     QStatusBar *statusbar;
 
@@ -75,12 +77,17 @@ public:
         toolButton->setPopupMode(QToolButton::ToolButtonPopupMode::DelayedPopup);
         Prev = new QToolButton(centralwidget);
         Prev->setObjectName("Prev");
-        Prev->setGeometry(QRect(550, 25, 50, 50));
+        Prev->setGeometry(QRect(550, 30, 50, 50));
         Prev->setArrowType(Qt::ArrowType::LeftArrow);
         Next = new QToolButton(centralwidget);
         Next->setObjectName("Next");
-        Next->setGeometry(QRect(690, 20, 50, 50));
+        Next->setGeometry(QRect(700, 30, 50, 50));
         Next->setArrowType(Qt::ArrowType::RightArrow);
+        MonthDisplay = new QLabel(centralwidget);
+        MonthDisplay->setObjectName("MonthDisplay");
+        MonthDisplay->setGeometry(QRect(610, 40, 81, 21));
+        MonthDisplay->setTextFormat(Qt::TextFormat::PlainText);
+        MonthDisplay->setAlignment(Qt::AlignmentFlag::AlignCenter);
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName("menubar");
@@ -103,6 +110,7 @@ public:
         toolButton->setText(QCoreApplication::translate("MainWindow", "Groups", nullptr));
         Prev->setText(QCoreApplication::translate("MainWindow", "PushButton", nullptr));
         Next->setText(QCoreApplication::translate("MainWindow", "PushButton", nullptr));
+        MonthDisplay->setText(QCoreApplication::translate("MainWindow", "Month", nullptr));
     } // retranslateUi
 
 };
