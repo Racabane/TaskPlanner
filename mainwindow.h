@@ -63,6 +63,7 @@ protected:
                         if(count != 5){
                             QWidget *container = table->cellWidget(row,column);
                             container->layout()->addWidget(TaskVisualButton);
+                            TaskVisualButton->setStyleSheet("background-color: rgb(143,188,143)");
                             TaskStorage[GridDay][count] = newTask;
                             connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { on_TaskButton_clicked(GridDay ,count); });
                         }

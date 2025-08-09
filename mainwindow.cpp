@@ -7,7 +7,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     //Loads the ui of the application
     ui->setupUi(this);
-    this->setStyleSheet("background-color: rgb(143,188,143)");
+    this->setStyleSheet("background-color: rgb(143,188,143); color: black;");
 
 
     //sizes the main window based on the users screen
@@ -22,7 +22,7 @@ MainWindow::MainWindow(QWidget *parent)
     QToolButton *GroupsDrop = ui->toolButton;
     QToolButton *LeftArrow = ui->Prev;
     QToolButton *RightArrow = ui->Next;
-    table->setStyleSheet("QHeaderView::section{background-color: rgb(90,170,90); border: 0px; margin: 0px; padding: 0px;} QTableWidget{background-color: rgb(220,240,230) }");
+    table->setStyleSheet("QHeaderView::section{background-color: rgb(90,170,90); border: 0px; margin: 0px; padding: 0px;} QTableWidget{background-color:  rgb(210,240,210); }");
 
     QString baseButtonDesign = "QPushButton {background-color: rgb(130,230,160); border-color: rgb(75,120,75); border-style: solid; border-radius: 5px; border-width: 5px;} "
         " QPushButton:hover {background-color: rgb(110,200,110); border-color: rgb(75,110,75);} QPushButton:pressed {background-color: rgb(150,230,150); border-color: rgb(95,130,95);}";
@@ -122,10 +122,10 @@ void MainWindow::on_MonthView_clicked()
         for(int i = 0; i < date.daysInMonth(); i++){
             QWidget *container = new QWidget();
             QVBoxLayout *layoutOfContainer = new QVBoxLayout(container);
-            container->setStyleSheet("background-color:  rgb(220,240,230)");
-
             QLabel *Daynumber = new QLabel();
             Daynumber->setText(QString::number(i + 1));
+            container->setStyleSheet("background-color:  rgb(210,240,210); color: black;");
+
             layoutOfContainer->addWidget(Daynumber);
 
             for(int k = 0; k < 5; k++){
