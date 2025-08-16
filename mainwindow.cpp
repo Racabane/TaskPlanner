@@ -35,7 +35,7 @@ MainWindow::MainWindow(QWidget *parent)
     RightArrow->setStyleSheet(baseToolButtonDesign);
 
     //add buttons
-    table->setGeometry(20, 100, screenSize.width() * 0.9 - 50, screenSize.height() * 0.7 );
+    table->setGeometry(20, 100, screenSize.width() * 0.9 - 50, screenSize.height() * 0.8 );
     table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     table->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
@@ -58,24 +58,21 @@ void MainWindow::loadWeek(){
 
     //Updates main window to show the month thats being viewed
     ui->MonthDisplay->setText(getMonthName(trackingdate));
-
-    //sets the week to the first day of the week
-    trackingdate = trackingdate.addDays(-trackingdate.dayOfWeek() +1);
+    getWeekDayCycle(trackingdate);
 
     //loops through the columns and rows of the table to fill in any tasks set for thise days
     for(int column = 0; column < 7; column++){
-        //sets the header of the columns to have the numerical date of the month
-        QTableWidgetItem *headerItem = new QTableWidgetItem(QString::number(trackingdate.addDays(column).day()));
-        table->setHorizontalHeaderItem(column, headerItem);
+        //sets the header of the columns to have the numerical date of the month and day of week
+        table->setHorizontalHeaderItem(column, new QTableWidgetItem(table->horizontalHeaderItem(column)->text() + " " + QString::number(trackingdate.addDays(column).day())));
 
         for(int row = 0; row < 5; row++){
             //if a task is found in task storage the matches the date that the table is currently veiwing
             //places it as a button and connects the button to the releavent task
-            if(!TaskStorage[trackingdate.dayOfYear() + column][row].name.isEmpty()){
-                QPushButton *TaskVisualButton = new QPushButton(TaskStorage[trackingdate.dayOfYear() + column][row].name);
+            if(!TaskStorage[trackingdate.addDays(column).dayOfYear()][row].name.isEmpty()){
+                QPushButton *TaskVisualButton = new QPushButton(TaskStorage[trackingdate.addDays(column).dayOfYear()][row].name);
                 table->setCellWidget(row, column, TaskVisualButton);
-                TaskInfoVisualEffect(TaskVisualButton, &TaskStorage[trackingdate.dayOfYear() + column][row]);
-                connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { on_TaskButton_clicked(trackingdate.dayOfYear() + column, row); });
+                TaskInfoVisualEffect(TaskVisualButton, &TaskStorage[trackingdate.addDays(column).dayOfYear()][row]);
+                connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { on_TaskButton_clicked(trackingdate.addDays(column).dayOfYear(), row); });
             }
         }
     }
@@ -88,42 +85,20 @@ void MainWindow::on_MonthView_clicked()
         table->clearContents();
         ui->MonthView->setText("Week View");
 
-        QDate date = trackingdate;
-        ui->MonthDisplay->setText(getMonthName(date));
+        ui->MonthDisplay->setText(getMonthName(trackingdate));
 
-        int startofMonth = date.dayOfYear() - date.day() + 1;
-        switch(date.addDays(date.day() + 1).dayOfWeek()){
-        case 7:
-            table->setHorizontalHeaderLabels(QStringList({"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"}));
-            break;
-        case 1:
-            table->setHorizontalHeaderLabels(QStringList({"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday", "Sunday"}));
-            break;
-        case 2:
-            table->setHorizontalHeaderLabels(QStringList({"Tuesday","Wednesday","Thursday","Friday","Saturday", "Sunday", "Monday"}));
-            break;
-        case 3:
-            table->setHorizontalHeaderLabels(QStringList({"Wednesday","Thursday","Friday","Saturday", "Sunday", "Monday", "Tuesday"}));
-            break;
-        case 4:
-            table->setHorizontalHeaderLabels(QStringList({"Thursday","Friday","Saturday", "Sunday", "Monday", "Tuesday", "Wednesday"}));
-            break;
-        case 5:
-            table->setHorizontalHeaderLabels(QStringList({"Friday", "Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"}));
-            break;
-        case 6:
-            table->setHorizontalHeaderLabels(QStringList({"Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"}));
-            break;
-        }
+        int startofMonth = trackingdate.dayOfYear() - trackingdate.day() + 1;
 
+        getWeekDayCycle(trackingdate.addDays(trackingdate.day() + 1));
         int week = 0;
         int day = 0;
 
-        for(int i = 0; i < date.daysInMonth(); i++){
+        for(int i = 0; i < trackingdate.daysInMonth(); i++){
             QWidget *container = new QWidget();
             QVBoxLayout *layoutOfContainer = new QVBoxLayout(container);
             QLabel *Daynumber = new QLabel();
             Daynumber->setText(QString::number(i + 1));
+            Daynumber->setFixedSize(50,20);
             container->setStyleSheet("background-color:  rgb(210,240,210); color: black;");
 
             layoutOfContainer->addWidget(Daynumber);
@@ -186,7 +161,7 @@ void MainWindow::on_Next_clicked()
         trackingdate = trackingdate.addDays(7);
         loadWeek();
     }else{
-        if(days <= 365 - 32){
+        if(days <= 365 - trackingdate.daysInMonth()){
             trackingdate = trackingdate.addDays( trackingdate.daysInMonth() - trackingdate.day() + 1);
             MonthChange = true;
             on_MonthView_clicked();
@@ -431,6 +406,36 @@ QString MainWindow::getMonthName(QDate date){
         return "December";
     default:
         return "Month";
+    }
+}
+
+//helper fuction to get the right order of the week being viewed
+void MainWindow::getWeekDayCycle(QDate date){
+
+    switch(date.dayOfWeek()){
+        case 7:
+            table->setHorizontalHeaderLabels(QStringList({"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"}));
+            break;
+        case 1:
+            table->setHorizontalHeaderLabels(QStringList({"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday", "Sunday"}));
+            break;
+        case 2:
+            table->setHorizontalHeaderLabels(QStringList({"Tuesday","Wednesday","Thursday","Friday","Saturday", "Sunday", "Monday"}));
+            break;
+        case 3:
+            table->setHorizontalHeaderLabels(QStringList({"Wednesday","Thursday","Friday","Saturday", "Sunday", "Monday", "Tuesday"}));
+            break;
+        case 4:
+            table->setHorizontalHeaderLabels(QStringList({"Thursday","Friday","Saturday", "Sunday", "Monday", "Tuesday", "Wednesday"}));
+            break;
+        case 5:
+            table->setHorizontalHeaderLabels(QStringList({"Friday", "Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"}));
+            break;
+        case 6:
+            table->setHorizontalHeaderLabels(QStringList({"Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"}));
+            break;
+        default:
+            break;
     }
 }
 

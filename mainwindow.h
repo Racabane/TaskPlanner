@@ -46,21 +46,19 @@ protected:
                 int row = cords.row();
                 int column = cords.column();
                 int count = 0;
-                int startofweek =  trackingdate.dayOfYear() - trackingdate.dayOfWeek() + 1;
-                int startofmonth = trackingdate.addDays(-trackingdate.day()).dayOfYear();
+                int GridDay = trackingdate.addDays(-trackingdate.day()+ (column + (row * 7) + 1)).dayOfYear();
                 Task newTask;
                 QPushButton *TaskVisualButton = new QPushButton("New Task", this);
                 if(!table->cellWidget(row, column) && (monthViewActive == false)){
                     table->setCellWidget(row, column, TaskVisualButton);
-                    TaskStorage[startofweek + column][row] = newTask;
-                    connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { on_TaskButton_clicked(startofweek + column ,row); });
+                    TaskStorage[trackingdate.addDays(column).dayOfYear()][row] = newTask;
+                    connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { on_TaskButton_clicked(trackingdate.addDays(column).dayOfYear() ,row); });
                 }else if(monthViewActive){
-                    int GridDay = startofmonth + (column + (row * 7) + 1);
                     if((column + (row * 7) + 1) < trackingdate.daysInMonth() + 1){
                         while(!TaskStorage[GridDay][count].name.isEmpty()){
                             count++;
                         }
-                        if(count != 5){
+                        if(count != 5 && table->cellWidget(row,column)->layout()->count() != 6){
                             QWidget *container = table->cellWidget(row,column);
                             container->layout()->addWidget(TaskVisualButton);
                             TaskVisualButton->setStyleSheet("background-color: rgb(143,188,143)");
@@ -87,6 +85,8 @@ private slots:
 
     void on_MonthView_clicked();
     QString getMonthName(QDate date);
+    void getWeekDayCycle(QDate date);
+
 
 private:
     Ui::MainWindow *ui;
