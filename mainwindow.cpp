@@ -89,7 +89,7 @@ void MainWindow::on_MonthView_clicked()
 
         int startofMonth = trackingdate.dayOfYear() - trackingdate.day() + 1;
 
-        getWeekDayCycle(trackingdate.addDays(trackingdate.day() + 1));
+        getWeekDayCycle(trackingdate.addDays(-trackingdate.day() + 1));
         int week = 0;
         int day = 0;
 
@@ -155,8 +155,8 @@ void MainWindow::on_Next_clicked()
     int days = trackingdate.dayOfYear() + (365 * (trackingdate.year() - QDate::currentDate().year()));
 
     if(monthViewActive == false){
-        if(days >  365 - 13){
-            trackingdate = trackingdate.addDays( - (days - (365 - 14)));
+        if(days >=  351){
+            trackingdate = trackingdate.addDays(  (352 - days));
         }
         trackingdate = trackingdate.addDays(7);
         loadWeek();

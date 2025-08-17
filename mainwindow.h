@@ -82,7 +82,6 @@ private slots:
     void on_Next_clicked();
     void saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit *Name, QLineEdit *Desc, QDateEdit *Start, QDateEdit *End, QComboBox *StatusBox, QComboBox *PriorityBox);
     void deleteTaskInfo( QDialog *dialog, int column, int row);
-
     void on_MonthView_clicked();
     QString getMonthName(QDate date);
     void getWeekDayCycle(QDate date);
@@ -99,6 +98,7 @@ private:
     bool dragging = false;
 
     bool monthViewActive = false;
+
     bool MonthChange = false;
 
 
@@ -119,9 +119,11 @@ private:
         QString prerequisite;
         QString requisite;
     };
+
     void TaskInfoVisualEffect(QPushButton *TaskVisualButton, Task *taskToChange);
+
     //The stroage holding all the tasks
-    Task TaskStorage[365][5];
+    Task TaskStorage[366][5];
 
 };
 
