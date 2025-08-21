@@ -7,6 +7,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     //Loads the ui of the application
     ui->setupUi(this);
+    //sets color of mainwindow and text that is inherited to all children
     this->setStyleSheet("background-color: rgb(143,188,143); color: black;");
 
 
@@ -16,14 +17,18 @@ MainWindow::MainWindow(QWidget *parent)
 
     //sets the table size in the main window
     table = ui->tableWidget;
+
+    //Creates pointers to the buttons created in the ui form so they can be accessed code wise
     QPushButton *CreateButton = ui->pushButton;
     QPushButton *MonthButton = ui->MonthView;
-
     QToolButton *GroupsDrop = ui->toolButton;
     QToolButton *LeftArrow = ui->Prev;
     QToolButton *RightArrow = ui->Next;
+
+    //styles the table
     table->setStyleSheet("QHeaderView::section{background-color: rgb(90,170,90); border: 0px; margin: 0px; padding: 0px;} QTableWidget{background-color:  rgb(210,240,210); }");
 
+    //styles the buttons in the tool bar
     QString baseButtonDesign = "QPushButton {background-color: rgb(130,230,160); border-color: rgb(75,120,75); border-style: solid; border-radius: 5px; border-width: 5px;} "
         " QPushButton:hover {background-color: rgb(110,200,110); border-color: rgb(75,110,75);} QPushButton:pressed {background-color: rgb(150,230,150); border-color: rgb(95,130,95);}";
     QString baseToolButtonDesign =  "QToolButton {background-color: rgb(130,230,160); border-color: rgb(75,120,75); border-style: solid; border-radius: 5px; border-width: 5px;} "
@@ -34,7 +39,7 @@ MainWindow::MainWindow(QWidget *parent)
     LeftArrow->setStyleSheet(baseToolButtonDesign);
     RightArrow->setStyleSheet(baseToolButtonDesign);
 
-    //add buttons
+    //sizes the table on the mainwindow and strech columns and rows to match table size
     table->setGeometry(20, 100, screenSize.width() * 0.9 - 50, screenSize.height() * 0.8 );
     table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     table->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -50,6 +55,7 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
+
 
 //this function is for loading the content in the table for the viewed week
 void MainWindow::loadWeek(){
@@ -72,7 +78,7 @@ void MainWindow::loadWeek(){
                 QPushButton *TaskVisualButton = new QPushButton(TaskStorage[trackingdate.addDays(column).dayOfYear()][row].name);
                 table->setCellWidget(row, column, TaskVisualButton);
                 TaskInfoVisualEffect(TaskVisualButton, &TaskStorage[trackingdate.addDays(column).dayOfYear()][row]);
-                connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { on_TaskButton_clicked(trackingdate.addDays(column).dayOfYear(), row); });
+                connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { TaskButton(trackingdate.addDays(column).dayOfYear(), row); });
             }
         }
     }
@@ -80,39 +86,56 @@ void MainWindow::loadWeek(){
 
 void MainWindow::on_MonthView_clicked()
 {
+    //If user click on the month view button and it is not active will load the month or if a month change has occured
     if(monthViewActive == false || MonthChange == true){
+        //sets the month view to be active
         monthViewActive = true;
+        //clears the table from past view too allow it to be filled with the new info
         table->clearContents();
+        //sets the month view button to say week view so that the user is aware cliking on it again wil take them back to week view
         ui->MonthView->setText("Week View");
 
+        //gets the month that is being view and displays it on mainwindow for user to be aware of it
         ui->MonthDisplay->setText(getMonthName(trackingdate));
 
-        int startofMonth = trackingdate.dayOfYear() - trackingdate.day() + 1;
-
+        //uses helper fuction to determine the week cycle based on the first day of month ie  if first day is wednsday then it will go wednsday, thursday, friday...
         getWeekDayCycle(trackingdate.addDays(-trackingdate.day() + 1));
+
+        //gets the first day of the month as a int value fror the array to use to select realted task
+        int startofMonth = trackingdate.dayOfYear() - trackingdate.day() + 1;
+        //variables to keep track of the row and column in the table to place the contianer holding the days tasks
         int week = 0;
         int day = 0;
 
+        //a loop to go through all the days of the month being viewed
         for(int i = 0; i < trackingdate.daysInMonth(); i++){
+            //adds a container with a layout to each day since qtable boxes can only hold one widget so this one widget will be a container that can hold more widgets
+            //to contain all tasks since each task is represent by a qbutton widget
             QWidget *container = new QWidget();
             QVBoxLayout *layoutOfContainer = new QVBoxLayout(container);
+
+            //creates a label to hold the day number and displays it in the corresponding box in the table
             QLabel *Daynumber = new QLabel();
             Daynumber->setText(QString::number(i + 1));
             Daynumber->setFixedSize(50,20);
             container->setStyleSheet("background-color:  rgb(210,240,210); color: black;");
-
             layoutOfContainer->addWidget(Daynumber);
 
+            //for each day it will cycle through all five slots meant for tasks asscoiated with that day
             for(int k = 0; k < 5; k++){
+                //if it finds a task in the slot creates a visual button andn plcaes in the conainer to be seen in the box and connects it to
+                //releated task along with visuallly changing the buttons look to match its stored information
                 if(!TaskStorage[startofMonth + i][k].name.isEmpty()){
                     QPushButton *TaskVisualButton = new QPushButton(TaskStorage[(startofMonth + i)][k].name);
                     layoutOfContainer->addWidget(TaskVisualButton);
                     Task *taskToChange = &TaskStorage[(startofMonth + i)][k];
                     TaskInfoVisualEffect(TaskVisualButton, taskToChange);
-                    connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { on_TaskButton_clicked(startofMonth + i, k); });
+                    connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { TaskButton(startofMonth + i, k); });
                 }
             }
+            //adds the container to the table in the repective box
             table->setCellWidget(week, day, container);
+            //updates the row and column of the table being viewed
             day++;
             if(day == 7){
                 day = 0;
@@ -120,6 +143,7 @@ void MainWindow::on_MonthView_clicked()
             }
         }
     }else{
+        //if it is month view clciking on it again when is says weeks view will just change it back to week view
         monthViewActive = false;
         ui->MonthView->setText("Month View");
         loadWeek();
@@ -194,7 +218,7 @@ void MainWindow::on_pushButton_clicked()
 }
 
 //This fuction is to open the edit menu for editing tasks
-void MainWindow::on_TaskButton_clicked(int column, int row)
+void MainWindow::TaskButton(int column, int row)
 {
     //gets the releavent task for editing from the task storage
     Task *selectedTask = &TaskStorage[column][row];
@@ -374,10 +398,16 @@ void MainWindow::deleteTaskInfo(QDialog *dialog, int column, int row){
     dialog->close();
 
     //refreshes the tasks in the table to show the visual deletion of the task
-    loadWeek();
+    if(monthViewActive){
+        MonthChange = true;
+        on_MonthView_clicked();
+        MonthChange = false;
+    }else{
+        loadWeek();
+    }
 }
 
-
+//helper function to get dates month as string
 QString MainWindow::getMonthName(QDate date){
     switch(date.month()){
     case 1:
@@ -439,6 +469,7 @@ void MainWindow::getWeekDayCycle(QDate date){
     }
 }
 
+//fuction to style task buttons in table
 void MainWindow::TaskInfoVisualEffect(QPushButton *TaskVisualButton, Task *taskToChange){
     QString base ="QPushButton{ color: black; } ";
 
