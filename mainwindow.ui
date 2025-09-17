@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>1311</width>
     <height>600</height>
    </rect>
   </property>
@@ -20,11 +20,17 @@
    <widget class="QTableWidget" name="tableWidget">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>70</y>
-      <width>541</width>
-      <height>131</height>
+      <x>210</x>
+      <y>10</y>
+      <width>901</width>
+      <height>481</height>
      </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
     </property>
     <property name="minimumSize">
      <size>
@@ -82,8 +88,8 @@
     <property name="geometry">
      <rect>
       <x>25</x>
-      <y>25</y>
-      <width>150</width>
+      <y>100</y>
+      <width>100</width>
       <height>50</height>
      </rect>
     </property>
@@ -97,9 +103,9 @@
    <widget class="QPushButton" name="MonthView">
     <property name="geometry">
      <rect>
-      <x>375</x>
-      <y>25</y>
-      <width>150</width>
+      <x>25</x>
+      <y>175</y>
+      <width>100</width>
       <height>50</height>
      </rect>
     </property>
@@ -110,9 +116,9 @@
    <widget class="QToolButton" name="toolButton">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>25</y>
-      <width>150</width>
+      <x>25</x>
+      <y>350</y>
+      <width>100</width>
       <height>50</height>
      </rect>
     </property>
@@ -126,9 +132,9 @@
    <widget class="QToolButton" name="Prev">
     <property name="geometry">
      <rect>
-      <x>550</x>
-      <y>30</y>
-      <width>50</width>
+      <x>25</x>
+      <y>250</y>
+      <width>40</width>
       <height>50</height>
      </rect>
     </property>
@@ -142,9 +148,9 @@
    <widget class="QToolButton" name="Next">
     <property name="geometry">
      <rect>
-      <x>700</x>
-      <y>30</y>
-      <width>50</width>
+      <x>85</x>
+      <y>250</y>
+      <width>40</width>
       <height>50</height>
      </rect>
     </property>
@@ -158,8 +164,8 @@
    <widget class="QLabel" name="MonthDisplay">
     <property name="geometry">
      <rect>
-      <x>610</x>
-      <y>40</y>
+      <x>35</x>
+      <y>310</y>
       <width>81</width>
       <height>21</height>
      </rect>
@@ -174,14 +180,27 @@
      <set>Qt::AlignmentFlag::AlignCenter</set>
     </property>
    </widget>
+   <widget class="QPushButton" name="ListView">
+    <property name="geometry">
+     <rect>
+      <x>25</x>
+      <y>30</y>
+      <width>100</width>
+      <height>50</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>List View</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
-     <height>18</height>
+     <width>1311</width>
+     <height>21</height>
     </rect>
    </property>
   </widget>

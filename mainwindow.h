@@ -13,6 +13,8 @@
 #include <QComboBox>
 #include <QDate>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QScrollArea>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -113,6 +115,14 @@ private slots:
     void getWeekDayCycle(QDate date);
 
 
+    void on_ListView_clicked();
+
+
+    void LoadNextList(int start, QVBoxLayout *layout);
+    void LoadPrevList(int start,  QVBoxLayout *layout);
+    QString DateFormatMonthDay(int date);
+
+
 private:
     Ui::MainWindow *ui;
     QLabel *label = nullptr;
@@ -128,6 +138,12 @@ private:
 
     //tracking when month changes
     bool MonthChange = false;
+
+    bool ListViewActive = false;
+    int listDateStart = 0;
+    int listDate = 0;
+    int listDateEnd = 0;
+    QScrollArea *area = nullptr;
 
 
     //sets this private variable at start up to current date and will be used to track the date as use naviagtes through calender

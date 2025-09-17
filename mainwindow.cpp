@@ -20,6 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     //Creates pointers to the buttons created in the ui form so they can be accessed code wise
     QPushButton *CreateButton = ui->pushButton;
+    QPushButton *ViewButton = ui->ListView;
     QPushButton *MonthButton = ui->MonthView;
     QToolButton *GroupsDrop = ui->toolButton;
     QToolButton *LeftArrow = ui->Prev;
@@ -34,13 +35,14 @@ MainWindow::MainWindow(QWidget *parent)
     QString baseToolButtonDesign =  "QToolButton {background-color: rgb(130,230,160); border-color: rgb(75,120,75); border-style: solid; border-radius: 5px; border-width: 5px;} "
         " QToolButton:hover {background-color: rgb(110,200,110); border-color: rgb(75,110,75);} QToolButton:pressed {background-color: rgb(130,220,130); border-color: rgb(110,130,110);}";
     CreateButton->setStyleSheet(baseButtonDesign );
+    ViewButton->setStyleSheet(baseButtonDesign );
     MonthButton->setStyleSheet(baseButtonDesign);
     GroupsDrop->setStyleSheet(baseToolButtonDesign);
     LeftArrow->setStyleSheet(baseToolButtonDesign);
     RightArrow->setStyleSheet(baseToolButtonDesign);
 
     //sizes the table on the mainwindow and strech columns and rows to match table size
-    table->setGeometry(20, 100, screenSize.width() * 0.9 - 50, screenSize.height() * 0.8 );
+    table->setGeometry(175, 0, screenSize.width() * 0.8, screenSize.height() * 0.9);
     table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     table->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
@@ -378,6 +380,9 @@ void MainWindow::saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit 
     //refreshes the tasks in the table to show the reflected changes to the task
     if(monthViewActive == false){
         loadWeek();
+    }else if(ListViewActive){
+        QVBoxLayout *ptr = static_cast<QVBoxLayout*>(area->layout());
+        LoadNextList(listDate, ptr);
     }else{
         MonthChange = true;
         on_MonthView_clicked();
@@ -489,4 +494,153 @@ void MainWindow::TaskInfoVisualEffect(QPushButton *TaskVisualButton, Task *taskT
         base += "QPushButton{border-color: rgb(60,60,60);;}";
     }
     TaskVisualButton->setStyleSheet(base);
+}
+
+void MainWindow::on_ListView_clicked()
+{
+    if(ListViewActive){
+        ListViewActive = false;
+        delete area;
+        area = nullptr;
+        QString baseButtonDesign = "QPushButton {background-color: rgb(130,230,160); border-color: rgb(75,120,75); border-style: solid; border-radius: 5px; border-width: 5px;} "
+                                   " QPushButton:hover {background-color: rgb(110,200,110); border-color: rgb(75,110,75);} QPushButton:pressed {background-color: rgb(150,230,150); border-color: rgb(95,130,95);}";
+        QString baseToolButtonDesign =  "QToolButton {background-color: rgb(130,230,160); border-color: rgb(75,120,75); border-style: solid; border-radius: 5px; border-width: 5px;} "
+                                       " QToolButton:hover {background-color: rgb(110,200,110); border-color: rgb(75,110,75);} QToolButton:pressed {background-color: rgb(130,220,130); border-color: rgb(110,130,110);}";
+        ui->MonthView->setStyleSheet(baseButtonDesign);
+        ui->MonthView->setEnabled(true);
+        ui->pushButton->setStyleSheet(baseButtonDesign);
+        ui->pushButton->setEnabled(true);
+        ui->toolButton->setStyleSheet(baseToolButtonDesign);
+        ui->toolButton->setEnabled(true);
+        ui->MonthDisplay->setStyleSheet(baseButtonDesign);
+        ui->MonthDisplay->setEnabled(true);
+        ui->Prev->setStyleSheet(baseToolButtonDesign);
+        ui->Prev->setEnabled(true);
+        ui->Next->setStyleSheet(baseToolButtonDesign);
+        ui->Next->setEnabled(true);
+        table->show();
+        loadWeek();
+    }else{
+        //clears screen to set up list view
+        QString baseButtonDesign = "QPushButton {background-color: rgba(180,210,180,50%); border-color: rgba(140,150,140,50%); border-style: solid; border-radius: 5px; border-width: 5px;} ";
+        QString baseToolButtonDesign =  "QToolButton {background-color: rgba(180,210,180,50%); border-color: rgba(140,150,140,50%); border-style: solid; border-radius: 5px; border-width: 5px;} ";
+        ListViewActive = true;
+        monthViewActive = false;
+        table->clearContents();
+        table->hide();
+        ui->MonthView->setStyleSheet(baseButtonDesign);
+        ui->MonthView->setEnabled(false);
+        ui->pushButton->setStyleSheet(baseButtonDesign);
+        ui->pushButton->setEnabled(false);
+        ui->toolButton->setStyleSheet(baseToolButtonDesign);
+        ui->toolButton->setEnabled(false);
+        ui->MonthDisplay->setStyleSheet(baseButtonDesign);
+        ui->MonthDisplay->setEnabled(false);
+        ui->Prev->setStyleSheet(baseToolButtonDesign);
+        ui->Prev->setEnabled(false);
+        ui->Next->setStyleSheet(baseToolButtonDesign);
+        ui->Next->setEnabled(false);
+
+        //making of the main lsit view that will show 20 task in scrollable area but can load a different 20 base on firsat and last button for performance
+        listDateStart = QDate::currentDate().dayOfYear();
+        QWidget *container = new QWidget();
+        //fix styling of list view also get buttons to show up
+        area = new QScrollArea(this);
+        area->setGeometry( 175, 0, screen()->availableGeometry().size().width() * 0.8, screen()->availableGeometry().size().height() * 0.875);
+        area->show();
+        area->setWidgetResizable(true);
+        area->setStyleSheet("background-color: rgb(210,240,210);");
+        area->setWidget(container);
+        // container->setStyleSheet("background-color: rgb(100,0,0);");
+
+        QVBoxLayout *layout = new QVBoxLayout(container);
+        QPushButton *LoadPrevTasks = new QPushButton("Load Previous Tasks");
+        QPushButton *LoadNextTasks = new QPushButton("Load Next Tasks");
+        LoadNextTasks->setFixedSize(screen()->availableGeometry().size().width() * 0.5,200);
+        LoadNextTasks->setStyleSheet("QPushButton{background-color: rgb(70,220,50);} QPushButton:hover {background-color: rgb(90,180,90); }");
+        LoadPrevTasks->setStyleSheet("QPushButton{background-color: rgb(70,220,50);} QPushButton:hover {background-color: rgb(90,180,90); }");
+        LoadPrevTasks->setFixedSize(screen()->availableGeometry().size().width() * 0.5,200);
+
+        connect(LoadPrevTasks, &QPushButton::clicked, this, [=]() { LoadPrevList(listDateEnd, layout); });
+        connect(LoadNextTasks, &QPushButton::clicked, this, [=]() { LoadNextList(listDateStart, layout); });
+
+
+        layout->addWidget(LoadPrevTasks);
+        container->setLayout(layout);
+        //fuction that will find 20 tasks
+        LoadNextList(listDateStart, layout);
+        layout->addWidget(LoadNextTasks);
+
+
+    }
+
+}
+
+void MainWindow::LoadNextList(int start,  QVBoxLayout *layout){
+
+    listDate = start;
+    while(layout->count() > 2){
+        QLayoutItem *item = layout->takeAt(1);
+        delete item->widget();
+        delete item;
+    }
+    int tasksfound = 0;
+    layout->setAlignment(Qt::AlignCenter);
+
+    while(tasksfound != 20 && start != 366){
+        for(int i = 0; i < 5; i++){
+            if(!TaskStorage[start][i].name.isEmpty()){
+                tasksfound++;
+                QWidget *taskcard = new QWidget();
+                QLabel *carddate = new QLabel(DateFormatMonthDay(start));
+                carddate->setFixedSize(screen()->availableGeometry().size().width() * 0.2,200);
+                carddate->setAlignment(Qt::AlignCenter);
+                QHBoxLayout *innerlayout = new QHBoxLayout();
+                taskcard->setStyleSheet("QWidget{border: 2px solid black;} QWidget:hover {background-color: rgb(90,180,90);}");
+                innerlayout->addWidget(carddate);
+                taskcard->setLayout(innerlayout);
+                QPushButton *TaskVisualButton = new QPushButton(TaskStorage[start][i].name);
+                TaskVisualButton->setFixedSize(screen()->availableGeometry().size().width() * 0.5,200);
+                innerlayout->addWidget(TaskVisualButton);
+                Task *taskToChange = &TaskStorage[start][i];
+                TaskInfoVisualEffect(TaskVisualButton, taskToChange);
+                connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { TaskButton(start, i); });
+                layout->addWidget(taskcard);
+            }
+        }
+        start++;
+    }
+    listDateStart = start;
+}
+
+QString MainWindow::DateFormatMonthDay(int date){
+    QDate tmp = QDate::currentDate().addDays(- QDate::currentDate().dayOfYear() + 1);
+    tmp = tmp.addDays(date);
+    return tmp.toString("MMMM d");
+}
+
+void MainWindow::LoadPrevList(int start, QVBoxLayout *layout){
+    listDate = start;
+    while(layout->count() > 2){
+        QLayoutItem *item = layout->takeAt(1);
+        delete item->widget();
+        delete item;
+    }
+    int tasksfound = 0;
+    while(tasksfound != 20 && start != 0){
+        for(int i = 0; i < 5; i++){
+            if(!TaskStorage[start][i].name.isEmpty()){
+                tasksfound++;
+                QPushButton *TaskVisualButton = new QPushButton(TaskStorage[start][i].name);
+                TaskVisualButton->setFixedSize(screen()->availableGeometry().size().width() * 0.5,200);
+                layout->addWidget(TaskVisualButton);
+                Task *taskToChange = &TaskStorage[start][i];
+                TaskInfoVisualEffect(TaskVisualButton, taskToChange);
+                connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { TaskButton(start, i); });
+            }
+        }
+        start--;
+    }
+    listDateStart = start;
+
 }
