@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
-
+#include <fstream>
+#include <string>
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -45,6 +46,7 @@ MainWindow::MainWindow(QWidget *parent)
     table->setGeometry(175, 0, screenSize.width() * 0.8, screenSize.height() * 0.9);
     table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     table->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    loadfile();
 
     //loads the current week into the table on start of application
     loadWeek();
@@ -58,6 +60,43 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::loadfile(){
+    std::ifstream infile;
+    infile.open("tasksforqtapp.txt");
+    std::string line;
+
+    while(std::getline(infile, line)){
+        QString convertedLine = QString::fromStdString(line);
+        QStringList values = convertedLine.split('|');
+         Task *task = &TaskStorage[values[0].toInt()][values[1].toInt()];
+        task->name = values[2];
+        task->description = values[3];
+        task->priority = static_cast<Task::Priority>(values[4].toInt());
+        task->status = static_cast<Task::Status>(values[5].toInt());
+        task->prerequisiteDay = values[6].toInt();
+        task->prerequisiteSlot = values[7].toInt();
+        task->requisiteDay = values[8].toInt();
+        task->requisiteSlot = values[9].toInt();
+
+    }
+
+}
+
+void MainWindow::savefile(){
+    std::ofstream outfile;
+    outfile.open("tasksforqtapp.txt");
+    std::string line;
+
+    for(int i = 0; i < 366; i++){
+        for(int k = 0; k < 5; k++){
+            Task *task = &TaskStorage[i][k];
+            if(!task->name.isEmpty()){
+                outfile << i << "|" << k << "|" << task->name.toStdString() << "|" << task->description.toStdString() << "|" << task->priority << "|" << task->status << "|" << task->prerequisiteDay << "|" <<
+                    task->prerequisiteSlot << "|" << task->requisiteDay << "|" << task->requisiteSlot << "\n";
+            }
+        }
+    }
+}
 
 //this function is for loading the content in the table for the viewed week
 void MainWindow::loadWeek(){
@@ -261,33 +300,6 @@ void MainWindow::TaskButton(int column, int row)
     Desc->setParent(dialog);
     Desc->show();
 
-    //Tells the user to enter task start date in the date field
-    QLabel *StartLabel = new QLabel();
-    StartLabel->setText("Start Date: ");
-    StartLabel->setParent(dialog);
-    StartLabel->show();
-    StartLabel->setGeometry(25, 125, 100, 20);
-
-    //The field where users should enter the start date
-    QDateEdit *Start = new QDateEdit();
-    Start->setDate(selectedTask->startDate);
-    Start->setParent(dialog);
-    Start->show();
-    Start->setGeometry(100, 125, 100, 20);
-
-    //Tells the user to enter task end date in the date field
-    QLabel *EndLabel = new QLabel();
-    EndLabel->setText("End Date: ");
-    EndLabel->setParent(dialog);
-    EndLabel->show();
-    EndLabel->setGeometry(225, 125, 100, 20);
-
-    //The field where users should enter the end date
-    QDateEdit *End = new QDateEdit();
-    End->setDate(selectedTask->endDate);
-    End->setParent(dialog);
-    End->show();
-    End->setGeometry(300, 125, 100, 20);
 
     //Tells the user to enter task priority in the dropdown field
     QLabel *PriorityLabel = new QLabel();
@@ -330,7 +342,7 @@ void MainWindow::TaskButton(int column, int row)
     submitButton->setParent(dialog);
     submitButton->show();
     submitButton->setGeometry(200,200, 100,20);
-    connect(submitButton,&QPushButton::clicked, this,  [=]() { saveTaskInfo(dialog, column, row, Name, Desc, Start, End, StatusBox, PriorityBox); });
+    connect(submitButton,&QPushButton::clicked, this,  [=]() { saveTaskInfo(dialog, column, row, Name, Desc, StatusBox, PriorityBox); });
 
     //The delete button in the edit menu that will handle deleting the info
     QPushButton *deleteButton = new QPushButton("delete");
@@ -344,7 +356,7 @@ void MainWindow::TaskButton(int column, int row)
 }
 
 //This function is for when the user clicks the submit button within the edit menu that is used for editing tasks
-void MainWindow::saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit *Name, QLineEdit *Desc, QDateEdit *Start, QDateEdit *End, QComboBox *StatusBox, QComboBox *PriorityBox ){
+void MainWindow::saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit *Name, QLineEdit *Desc, QComboBox *StatusBox, QComboBox *PriorityBox ){
     //Gets the relavent task within the task storage that users is editing
     Task *selectedTask = &TaskStorage[column][row];
 
@@ -354,8 +366,6 @@ void MainWindow::saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit 
         selectedTask->name = "Blank";
     }
     selectedTask->description = Desc->text();
-    selectedTask->endDate = End->date();
-    selectedTask->startDate = Start->date();
 
     // selectedTask->priority = PriorityBox->currentText();//maybe optimize, https://stackoverflow.com/questions/16955918/qt-using-enums-with-qcombobox
     if(PriorityBox->currentText() == "Low"){

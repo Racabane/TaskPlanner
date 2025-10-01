@@ -15,6 +15,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QScrollArea>
+#include <QCloseEvent>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -36,6 +37,11 @@ protected:
         if(label && (dragging == true)){
             label->move(mapFromGlobal(QCursor::pos()) - QPoint(label->width() / 2, label->height() / 2));
         }
+    }
+
+    void closeEvent(QCloseEvent *event) override{
+        savefile();
+        event->accept();
     }
 
     //handles droping the task into the table
@@ -108,7 +114,7 @@ private slots:
     void loadWeek();
     void on_Prev_clicked();
     void on_Next_clicked();
-    void saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit *Name, QLineEdit *Desc, QDateEdit *Start, QDateEdit *End, QComboBox *StatusBox, QComboBox *PriorityBox);
+    void saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit *Name, QLineEdit *Desc, QComboBox *StatusBox, QComboBox *PriorityBox);
     void deleteTaskInfo( QDialog *dialog, int column, int row);
     void on_MonthView_clicked();
     QString getMonthName(QDate date);
@@ -121,6 +127,8 @@ private slots:
     void LoadNextList(int start, QVBoxLayout *layout);
     void LoadPrevList(int start,  QVBoxLayout *layout);
     QString DateFormatMonthDay(int date);
+    void loadfile();
+    void savefile();
 
 
 private:
@@ -154,14 +162,14 @@ private:
     struct Task {
         QString name;
         QString description;
-        QDate startDate;
-        QDate endDate;
         enum Priority { Low, Mid, High};
         Priority priority = Low;
         enum Status { Unstarted, Working, Completed};
         Status status = Unstarted;
-        QString prerequisite;
-        QString requisite;
+        int prerequisiteDay = -1;
+        int prerequisiteSlot = -1;
+        int requisiteDay = -1;
+        int requisiteSlot= -1;
     };
 
     void TaskInfoVisualEffect(QPushButton *TaskVisualButton, Task *taskToChange);
