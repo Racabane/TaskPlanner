@@ -688,7 +688,6 @@ void MainWindow::on_Link_clicked()
     Requisite->setGeometry(25, 100, 100, 20);
 
     dialog->show();
-
 }
 
 void MainWindow::saveLink(){
