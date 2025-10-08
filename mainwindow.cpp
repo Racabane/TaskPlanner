@@ -26,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
     QToolButton *GroupsDrop = ui->toolButton;
     QToolButton *LeftArrow = ui->Prev;
     QToolButton *RightArrow = ui->Next;
+    QPushButton *LinkButton = ui->Link;
 
     //styles the table
     table->setStyleSheet("QHeaderView::section{background-color: rgb(90,170,90); border: 0px; margin: 0px; padding: 0px;} QTableWidget{background-color:  rgb(210,240,210); }");
@@ -41,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent)
     GroupsDrop->setStyleSheet(baseToolButtonDesign);
     LeftArrow->setStyleSheet(baseToolButtonDesign);
     RightArrow->setStyleSheet(baseToolButtonDesign);
+    LinkButton->setStyleSheet(baseButtonDesign );
 
     //sizes the table on the mainwindow and strech columns and rows to match table size
     table->setGeometry(175, 0, screenSize.width() * 0.8, screenSize.height() * 0.9);
@@ -652,5 +654,43 @@ void MainWindow::LoadPrevList(int start, QVBoxLayout *layout){
         start--;
     }
     listDateStart = start;
+
+}
+
+void MainWindow::on_Link_clicked()
+{
+    QDialog *dialog = new QDialog();
+    dialog->setWindowModality(Qt::WindowModality::ApplicationModal);
+    dialog->setMinimumHeight(320);
+    dialog->setMinimumWidth(480);
+    dialog->setStyleSheet("QDialog {background-color: rgb(143,188,143)}");
+
+    QLabel *LabelName = new QLabel();
+    LabelName->setText("Enter  Prerequisite:                                           Enter  Requisite: ");
+    LabelName->setParent(dialog);
+    LabelName->show();
+    LabelName->setGeometry(25, 10, 400, 20);
+
+    QPushButton *submitButton = new QPushButton("submit");
+    submitButton->setParent(dialog);
+    submitButton->show();
+    submitButton->setGeometry(350,275, 100,20);
+    connect(submitButton,&QPushButton::clicked, this,  [=]() { saveLink(); });
+
+    QComboBox *Prerequisite = new QComboBox();
+    Prerequisite->setParent(dialog);
+    Prerequisite->show();
+    Prerequisite->setGeometry(300, 100, 100, 20);
+
+    QComboBox *Requisite = new QComboBox();
+    Requisite->setParent(dialog);
+    Requisite->show();
+    Requisite->setGeometry(25, 100, 100, 20);
+
+    dialog->show();
+
+}
+
+void MainWindow::saveLink(){
 
 }

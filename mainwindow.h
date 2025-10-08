@@ -130,6 +130,8 @@ private slots:
     void loadfile();
     void savefile();
 
+    void saveLink();
+    void on_Link_clicked();
 
 private:
     Ui::MainWindow *ui;
