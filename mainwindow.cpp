@@ -2,6 +2,7 @@
 #include "./ui_mainwindow.h"
 #include <fstream>
 #include <string>
+#include <iostream>
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -520,6 +521,8 @@ void MainWindow::on_ListView_clicked()
                                        " QToolButton:hover {background-color: rgb(110,200,110); border-color: rgb(75,110,75);} QToolButton:pressed {background-color: rgb(130,220,130); border-color: rgb(110,130,110);}";
         ui->MonthView->setStyleSheet(baseButtonDesign);
         ui->MonthView->setEnabled(true);
+        ui->Link->setStyleSheet(baseButtonDesign);
+        ui->Link->setEnabled(true);
         ui->pushButton->setStyleSheet(baseButtonDesign);
         ui->pushButton->setEnabled(true);
         ui->toolButton->setStyleSheet(baseToolButtonDesign);
@@ -542,6 +545,8 @@ void MainWindow::on_ListView_clicked()
         table->hide();
         ui->MonthView->setStyleSheet(baseButtonDesign);
         ui->MonthView->setEnabled(false);
+        ui->Link->setStyleSheet(baseButtonDesign);
+        ui->Link->setEnabled(false);
         ui->pushButton->setStyleSheet(baseButtonDesign);
         ui->pushButton->setEnabled(false);
         ui->toolButton->setStyleSheet(baseToolButtonDesign);
@@ -671,25 +676,36 @@ void MainWindow::on_Link_clicked()
     LabelName->show();
     LabelName->setGeometry(25, 10, 400, 20);
 
-    QPushButton *submitButton = new QPushButton("submit");
-    submitButton->setParent(dialog);
-    submitButton->show();
-    submitButton->setGeometry(350,275, 100,20);
-    connect(submitButton,&QPushButton::clicked, this,  [=]() { saveLink(); });
-
     QComboBox *Prerequisite = new QComboBox();
     Prerequisite->setParent(dialog);
+    Prerequisite->setEditable(true);
     Prerequisite->show();
-    Prerequisite->setGeometry(300, 100, 100, 20);
+    Prerequisite->setGeometry(300, 100, 200, 30);
 
     QComboBox *Requisite = new QComboBox();
     Requisite->setParent(dialog);
     Requisite->show();
-    Requisite->setGeometry(25, 100, 100, 20);
+    Requisite->setEditable(true);
+    Requisite->setGeometry(25, 100, 200, 30);
+    for(int i = 0; i < 366; i++){
+        for(int j = 0; j < 5; j++){
+            Task &task = TaskStorage[i][j];
+            if(!task.name.isEmpty()){
+                Prerequisite->addItem(task.name + ", Day: " + QString::number(i) + ", slot: " +  QString::number(j));
+                Requisite->addItem(task.name + ", Day: " + QString::number(i) + ", slot: " +  QString::number(j));
+            }
+        }
+    }
+    QPushButton *submitButton = new QPushButton("submit");
+    submitButton->setParent(dialog);
+    submitButton->show();
+    submitButton->setGeometry(350,275, 100,20);
+    connect(submitButton,&QPushButton::clicked, this,  [=]() { saveLink(Prerequisite->currentText(), Requisite->currentText() ); });
 
     dialog->show();
 }
 
-void MainWindow::saveLink(){
+void MainWindow::saveLink(QString Prerequisite , QString Requisite){
+    std::cout << Prerequisite.toStdString() << "\n" << Requisite.toStdString();
 
 }

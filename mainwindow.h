@@ -130,7 +130,7 @@ private slots:
     void loadfile();
     void savefile();
 
-    void saveLink();
+    void saveLink(QString Prerequisite , QString Requisite);
     void on_Link_clicked();
 
 private:
