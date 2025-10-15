@@ -489,23 +489,41 @@ void MainWindow::getWeekDayCycle(QDate date){
 
 //fuction to style task buttons in table
 void MainWindow::TaskInfoVisualEffect(QPushButton *TaskVisualButton, Task *taskToChange){
-    QString base ="QPushButton{ color: black; } ";
+    QString base ="QPushButton{ color: black; border: solid; border-radius: 5px;";
 
     if(taskToChange->priority == Task::Low){
-        base += "QPushButton{background-color: rgb(70,220,50);} QPushButton:hover {background-color: rgb(90,180,90); }";
+        base += "background-color: rgb(70,220,50);";
     } else if(taskToChange->priority == Task::Mid){
-        base += "QPushButton{background-color: rgb(230,250,0);} QPushButton:hover {background-color: rgb(200,220,0); }";
+        base += "background-color: rgb(230,250,0);";
     } else{
-        base += "QPushButton{background-color: rgb(220,70,50);} QPushButton:hover {background-color: rgb(190,90,90); }";
+        base += "background-color: rgb(220,70,50);";
     }
 
-    if(taskToChange->status == Task::Unstarted){
-        base  += "QPushButton{border-color: rgb(170,170,160);;}";
-    } else if(taskToChange->status == Task::Working){
-        base += "QPushButton{border-color: rgb(110,110,105);;}";
-    } else{
-        base += "QPushButton{border-color: rgb(60,60,60);;}";
+    if(taskToChange->prerequisiteDay != -1){
+        base += " border-left: 6px solid rgb(30,100,30);";
     }
+
+    if(taskToChange->requisiteDay != -1){
+        base += " border-right: 6px solid rgb(30,100,30);";
+    }
+
+    // if(taskToChange->status == Task::Unstarted){
+    //     base  += "QPushButton{border-color: rgb(170,170,160);;}";
+    // } else if(taskToChange->status == Task::Working){
+    //     base += "QPushButton{border-color: rgb(110,110,105);;}";
+    // } else{
+    //     base += "QPushButton{border-color: rgb(60,60,60);;}";
+    // }
+    base += "}";
+
+    if(taskToChange->priority == Task::Low){
+        base += "QPushButton:hover {background-color: rgb(90,180,90); }";
+    } else if(taskToChange->priority == Task::Mid){
+        base += "QPushButton:hover {background-color: rgb(200,220,0); }";
+    } else{
+        base += "QPushButton:hover {background-color: rgb(190,90,90); }";
+    }
+
     TaskVisualButton->setStyleSheet(base);
 }
 
@@ -691,8 +709,8 @@ void MainWindow::on_Link_clicked()
         for(int j = 0; j < 5; j++){
             Task &task = TaskStorage[i][j];
             if(!task.name.isEmpty()){
-                Prerequisite->addItem(task.name + ", Day: " + QString::number(i) + ", slot: " +  QString::number(j));
-                Requisite->addItem(task.name + ", Day: " + QString::number(i) + ", slot: " +  QString::number(j));
+                Prerequisite->addItem(task.name ,  QString::number(i) + "|" +  QString::number(j));
+                Requisite->addItem(task.name ,  QString::number(i) + "|" +  QString::number(j));
             }
         }
     }
@@ -700,12 +718,21 @@ void MainWindow::on_Link_clicked()
     submitButton->setParent(dialog);
     submitButton->show();
     submitButton->setGeometry(350,275, 100,20);
-    connect(submitButton,&QPushButton::clicked, this,  [=]() { saveLink(Prerequisite->currentText(), Requisite->currentText() ); });
+    connect(submitButton,&QPushButton::clicked, this,  [=]() { saveLink(Prerequisite->currentData().toString(), Requisite->currentData().toString() ); });
 
     dialog->show();
 }
 
 void MainWindow::saveLink(QString Prerequisite , QString Requisite){
-    std::cout << Prerequisite.toStdString() << "\n" << Requisite.toStdString();
+    QStringList prePos = Prerequisite.split('|');
+    QStringList reqPos = Requisite.split('|');
+
+    Task* PreTask = &TaskStorage[prePos[0].toInt()][prePos[1].toInt()];
+    Task* reqTask = &TaskStorage[reqPos[0].toInt()][reqPos[1].toInt()];
+
+    reqTask->prerequisiteDay = prePos[0].toInt();
+    reqTask->prerequisiteSlot = prePos[1].toInt();
+    PreTask->requisiteDay = reqPos[0].toInt();
+    PreTask->requisiteSlot = reqPos[1].toInt();
 
 }
