@@ -718,21 +718,29 @@ void MainWindow::on_Link_clicked()
     submitButton->setParent(dialog);
     submitButton->show();
     submitButton->setGeometry(350,275, 100,20);
-    connect(submitButton,&QPushButton::clicked, this,  [=]() { saveLink(Prerequisite->currentData().toString(), Requisite->currentData().toString() ); });
+    connect(submitButton,&QPushButton::clicked, this,  [=]() { saveLink(dialog, Prerequisite->currentData().toString(), Requisite->currentData().toString() ); });
 
     dialog->show();
 }
 
-void MainWindow::saveLink(QString Prerequisite , QString Requisite){
+void MainWindow::saveLink(QDialog *dialog, QString Prerequisite , QString Requisite){
     QStringList prePos = Prerequisite.split('|');
     QStringList reqPos = Requisite.split('|');
 
-    Task* PreTask = &TaskStorage[prePos[0].toInt()][prePos[1].toInt()];
-    Task* reqTask = &TaskStorage[reqPos[0].toInt()][reqPos[1].toInt()];
+    Task* PreTask = &TaskStorage[reqPos[0].toInt()][reqPos[1].toInt()];
+    Task* reqTask = &TaskStorage[prePos[0].toInt()][prePos[1].toInt()];
 
-    reqTask->prerequisiteDay = prePos[0].toInt();
-    reqTask->prerequisiteSlot = prePos[1].toInt();
-    PreTask->requisiteDay = reqPos[0].toInt();
-    PreTask->requisiteSlot = reqPos[1].toInt();
+    reqTask->prerequisiteDay = reqPos[0].toInt();
+    reqTask->prerequisiteSlot = reqPos[1].toInt();
+    PreTask->requisiteDay =   prePos[0].toInt();
+    PreTask->requisiteSlot = prePos[1].toInt();
+    dialog->close();
+    if(monthViewActive == false){
+        loadWeek();
+    }else{
+        MonthChange = true;
+        on_MonthView_clicked();
+        MonthChange = false;
+    }
 
 }
