@@ -63,6 +63,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+//open lauch of application will load data from txt file into task storage
 void MainWindow::loadfile(){
     std::ifstream infile;
     infile.open("tasksforqtapp.txt");
@@ -73,6 +74,7 @@ void MainWindow::loadfile(){
         QStringList values = convertedLine.split('|');
          Task *task = &TaskStorage[values[0].toInt()][values[1].toInt()];
         task->name = values[2];
+        values[3].replace("\*n", "\n");
         task->description = values[3];
         task->priority = static_cast<Task::Priority>(values[4].toInt());
         task->status = static_cast<Task::Status>(values[5].toInt());
@@ -85,6 +87,7 @@ void MainWindow::loadfile(){
 
 }
 
+//everything in taskstorage will be saved onto the txt file
 void MainWindow::savefile(){
     std::ofstream outfile;
     outfile.open("tasksforqtapp.txt");
@@ -94,6 +97,7 @@ void MainWindow::savefile(){
         for(int k = 0; k < 5; k++){
             Task *task = &TaskStorage[i][k];
             if(!task->name.isEmpty()){
+                task->description.replace("\n", "\*n");
                 outfile << i << "|" << k << "|" << task->name.toStdString() << "|" << task->description.toStdString() << "|" << task->priority << "|" << task->status << "|" << task->prerequisiteDay << "|" <<
                     task->prerequisiteSlot << "|" << task->requisiteDay << "|" << task->requisiteSlot << "\n";
             }
@@ -208,7 +212,8 @@ void MainWindow::on_Prev_clicked()
         loadWeek();
     }else{
         if(days >= 32){
-            trackingdate = trackingdate.addDays( - trackingdate.daysInMonth() - trackingdate.day() + 1);
+            trackingdate = trackingdate.addDays( - trackingdate.day() + 1);
+            trackingdate = trackingdate.addMonths(-1);
             MonthChange = true;
             on_MonthView_clicked();
             MonthChange = false;
@@ -296,10 +301,10 @@ void MainWindow::TaskButton(int column, int row)
     DescName->setGeometry(25, 50, 120, 20);
 
     //The field where users should enter task description
-    QLineEdit *Desc = new QLineEdit();
-    Desc->setText(selectedTask->description);
+    QPlainTextEdit *Desc = new QPlainTextEdit();
+    Desc->setPlainText(selectedTask->description);
     Desc->setToolTip("Enter Task Description: ");
-    Desc->setGeometry(150, 50, 100, 30);
+    Desc->setGeometry(150, 50, 300, 100);
     Desc->setParent(dialog);
     Desc->show();
 
@@ -339,19 +344,40 @@ void MainWindow::TaskButton(int column, int row)
     StatusBox->addItem("Done");
     StatusBox->setCurrentIndex(selectedTask->status);
 
+    QLabel *PreReq = new QLabel();
+    QString text = "Prerequiste Task: None";
+    if(!TaskStorage[selectedTask->prerequisiteDay][selectedTask->prerequisiteSlot].name.isEmpty()){
+        text = "Task Prerequiste Task: " + TaskStorage[selectedTask->prerequisiteDay][selectedTask->prerequisiteSlot].name;
+    }
+    PreReq->setText(text);
+    PreReq->setParent(dialog);
+    PreReq->show();
+    PreReq->setGeometry(25, 225, 150, 20);
+
+    QLabel *Req = new QLabel();
+    QString text2 = "Requiste Task: None";
+    if(!TaskStorage[selectedTask->requisiteDay][selectedTask->requisiteSlot].name.isEmpty()){
+        text2 = "Task Prerequiste Task: " + TaskStorage[selectedTask->requisiteDay][selectedTask->requisiteSlot].name;
+    }
+    Req->setText(text2);
+    Req->setParent(dialog);
+    Req->show();
+    Req->setGeometry(225, 225, 150, 20);
+
+
 
     //The submit button in the edit menu that will handle saving the info
     QPushButton *submitButton = new QPushButton("submit");
     submitButton->setParent(dialog);
     submitButton->show();
-    submitButton->setGeometry(200,200, 100,20);
+    submitButton->setGeometry(350,300, 100,30);
     connect(submitButton,&QPushButton::clicked, this,  [=]() { saveTaskInfo(dialog, column, row, Name, Desc, StatusBox, PriorityBox); });
 
     //The delete button in the edit menu that will handle deleting the info
     QPushButton *deleteButton = new QPushButton("delete");
     deleteButton->setParent(dialog);
     deleteButton->show();
-    deleteButton->setGeometry(25,200, 100,20);
+    deleteButton->setGeometry(25,300, 100,30);
     connect(deleteButton,&QPushButton::clicked, this,  [=]() { deleteTaskInfo(dialog, column, row); });
 
     //shows the edit menu
@@ -359,7 +385,7 @@ void MainWindow::TaskButton(int column, int row)
 }
 
 //This function is for when the user clicks the submit button within the edit menu that is used for editing tasks
-void MainWindow::saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit *Name, QLineEdit *Desc, QComboBox *StatusBox, QComboBox *PriorityBox ){
+void MainWindow::saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit *Name, QPlainTextEdit *Desc, QComboBox *StatusBox, QComboBox *PriorityBox ){
     //Gets the relavent task within the task storage that users is editing
     Task *selectedTask = &TaskStorage[column][row];
 
@@ -368,7 +394,7 @@ void MainWindow::saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit 
     if(Name->text().isEmpty()){
         selectedTask->name = "Blank";
     }
-    selectedTask->description = Desc->text();
+    selectedTask->description = Desc->toPlainText();
 
     // selectedTask->priority = PriorityBox->currentText();//maybe optimize, https://stackoverflow.com/questions/16955918/qt-using-enums-with-qcombobox
     if(PriorityBox->currentText() == "Low"){

@@ -16,7 +16,7 @@
 #include <QHBoxLayout>
 #include <QScrollArea>
 #include <QCloseEvent>
-
+#include <QPlainTextEdit>
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -114,7 +114,7 @@ private slots:
     void loadWeek();
     void on_Prev_clicked();
     void on_Next_clicked();
-    void saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit *Name, QLineEdit *Desc, QComboBox *StatusBox, QComboBox *PriorityBox);
+    void saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit *Name, QPlainTextEdit *Desc, QComboBox *StatusBox, QComboBox *PriorityBox);
     void deleteTaskInfo( QDialog *dialog, int column, int row);
     void on_MonthView_clicked();
     QString getMonthName(QDate date);
