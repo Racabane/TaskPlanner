@@ -605,6 +605,8 @@ void MainWindow::on_ListView_clicked()
         //making of the main lsit view that will show 20 task in scrollable area but can load a different 20 base on firsat and last button for performance
         listDateStart = QDate::currentDate().dayOfYear();
         QWidget *container = new QWidget();
+        QWidget *taskContainer = new QWidget();
+
         //fix styling of list view also get buttons to show up
         area = new QScrollArea(this);
         area->setGeometry( 175, 0, screen()->availableGeometry().size().width() * 0.8, screen()->availableGeometry().size().height() * 0.875);
@@ -614,7 +616,9 @@ void MainWindow::on_ListView_clicked()
         area->setWidget(container);
         // container->setStyleSheet("background-color: rgb(100,0,0);");
 
-        QVBoxLayout *layout = new QVBoxLayout(container);
+        QVBoxLayout *mainlayout = new QVBoxLayout(container);
+        QVBoxLayout *taskLayout = new QVBoxLayout(taskContainer);
+
         QPushButton *LoadPrevTasks = new QPushButton("Load Previous Tasks");
         QPushButton *LoadNextTasks = new QPushButton("Load Next Tasks");
         LoadNextTasks->setFixedSize(screen()->availableGeometry().size().width() * 0.5,200);
@@ -622,15 +626,16 @@ void MainWindow::on_ListView_clicked()
         LoadPrevTasks->setStyleSheet("QPushButton{background-color: rgb(70,220,50);} QPushButton:hover {background-color: rgb(90,180,90); }");
         LoadPrevTasks->setFixedSize(screen()->availableGeometry().size().width() * 0.5,200);
 
-        connect(LoadPrevTasks, &QPushButton::clicked, this, [=]() { LoadPrevList(listDateEnd, layout); });
-        connect(LoadNextTasks, &QPushButton::clicked, this, [=]() { LoadNextList(listDateStart, layout); });
+        connect(LoadPrevTasks, &QPushButton::clicked, this, [=]() { LoadPrevList(listDateStart - 1, taskLayout); });
+        connect(LoadNextTasks, &QPushButton::clicked, this, [=]() { LoadNextList(listDateEnd + 1, taskLayout); });
 
 
-        layout->addWidget(LoadPrevTasks);
-        container->setLayout(layout);
+        mainlayout->addWidget(LoadPrevTasks);
+        container->setLayout(mainlayout);
+        mainlayout->addWidget(taskContainer);
         //fuction that will find 20 tasks
-        LoadNextList(listDateStart, layout);
-        layout->addWidget(LoadNextTasks);
+        LoadNextList(listDateStart, taskLayout);
+        mainlayout->addWidget(LoadNextTasks);
 
 
     }
@@ -639,18 +644,23 @@ void MainWindow::on_ListView_clicked()
 
 void MainWindow::LoadNextList(int start,  QVBoxLayout *layout){
 
-    listDate = start;
-    while(layout->count() > 2){
-        QLayoutItem *item = layout->takeAt(1);
+    while(layout->count() > 0){
+        QLayoutItem *item = layout->takeAt(0);
         delete item->widget();
         delete item;
     }
     int tasksfound = 0;
     layout->setAlignment(Qt::AlignCenter);
+    int recordFirstDay = -1;
+    int recordLastDay = -1;
 
-    while(tasksfound != 20 && start != 366){
+    while(tasksfound != 20 && start <= 365){
         for(int i = 0; i < 5; i++){
             if(!TaskStorage[start][i].name.isEmpty()){
+                if(recordFirstDay == -1){
+                    recordFirstDay = start;
+                }
+                recordLastDay = start;
                 tasksfound++;
                 QWidget *taskcard = new QWidget();
                 QLabel *carddate = new QLabel(DateFormatMonthDay(start));
@@ -671,7 +681,13 @@ void MainWindow::LoadNextList(int start,  QVBoxLayout *layout){
         }
         start++;
     }
-    listDateStart = start;
+    if(recordFirstDay != -1){
+        listDateStart = recordFirstDay;
+        listDateEnd =  recordLastDay;
+    }else{
+        listDateStart = 365;
+        listDateEnd = 365;
+    }
 }
 
 QString MainWindow::DateFormatMonthDay(int date){
@@ -681,28 +697,49 @@ QString MainWindow::DateFormatMonthDay(int date){
 }
 
 void MainWindow::LoadPrevList(int start, QVBoxLayout *layout){
-    listDate = start;
-    while(layout->count() > 2){
-        QLayoutItem *item = layout->takeAt(1);
+    while(layout->count() > 0){
+        QLayoutItem *item = layout->takeAt(0);
         delete item->widget();
         delete item;
     }
     int tasksfound = 0;
-    while(tasksfound != 20 && start != 0){
+    int recordFirstDay = -1;
+    int recordLastDay = -1;
+
+    while(tasksfound != 20 && start >= 0){
         for(int i = 0; i < 5; i++){
             if(!TaskStorage[start][i].name.isEmpty()){
+                if(recordLastDay == -1){
+                    recordLastDay = start;
+                }
+                recordFirstDay = start;
                 tasksfound++;
+                QWidget *taskcard = new QWidget();
+                QLabel *carddate = new QLabel(DateFormatMonthDay(start));
+                carddate->setFixedSize(screen()->availableGeometry().size().width() * 0.2,200);
+                carddate->setAlignment(Qt::AlignCenter);
+                QHBoxLayout *innerlayout = new QHBoxLayout();
+                taskcard->setStyleSheet("QWidget{border: 2px solid black;} QWidget:hover {background-color: rgb(90,180,90);}");
+                innerlayout->addWidget(carddate);
+                taskcard->setLayout(innerlayout);
                 QPushButton *TaskVisualButton = new QPushButton(TaskStorage[start][i].name);
                 TaskVisualButton->setFixedSize(screen()->availableGeometry().size().width() * 0.5,200);
-                layout->addWidget(TaskVisualButton);
+                innerlayout->addWidget(TaskVisualButton);
                 Task *taskToChange = &TaskStorage[start][i];
                 TaskInfoVisualEffect(TaskVisualButton, taskToChange);
                 connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { TaskButton(start, i); });
+                layout->addWidget(taskcard);
             }
         }
         start--;
     }
-    listDateStart = start;
+    if(recordFirstDay != -1){
+        listDateStart = recordFirstDay;
+        listDateEnd =  recordLastDay;
+    }else{
+        listDateEnd = 0;
+        listDateStart = 0;
+    }
 
 }
 
