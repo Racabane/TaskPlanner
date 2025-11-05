@@ -17,6 +17,8 @@
 #include <QScrollArea>
 #include <QCloseEvent>
 #include <QPlainTextEdit>
+#include <QTimer>
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -122,6 +124,8 @@ private slots:
 
 
     void on_ListView_clicked();
+    void CreatedPopUp();
+    void DeletedPopUp();
 
 
     void LoadNextList(int start, QVBoxLayout *layout);

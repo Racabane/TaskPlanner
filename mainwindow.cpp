@@ -244,7 +244,6 @@ void MainWindow::on_Next_clicked()
     }
 }
 
-
 //this function is for when the create task button is clicked to create a label to place in the table
 void MainWindow::on_pushButton_clicked()
 {
@@ -415,6 +414,7 @@ void MainWindow::saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit 
 
     //closes the edit menu of the task
     dialog->close();
+    CreatedPopUp();
 
     //refreshes the tasks in the table to show the reflected changes to the task
     if(monthViewActive == false){
@@ -440,6 +440,7 @@ void MainWindow::deleteTaskInfo(QDialog *dialog, int column, int row){
 
     //Closes the task edit menu
     dialog->close();
+    DeletedPopUp();
 
     //refreshes the tasks in the table to show the visual deletion of the task
     if(monthViewActive){
@@ -621,10 +622,11 @@ void MainWindow::on_ListView_clicked()
 
         QPushButton *LoadPrevTasks = new QPushButton("Load Previous Tasks");
         QPushButton *LoadNextTasks = new QPushButton("Load Next Tasks");
-        LoadNextTasks->setFixedSize(screen()->availableGeometry().size().width() * 0.5,200);
+        LoadNextTasks->setFixedSize(screen()->availableGeometry().size().width() * 0.725,200);
+        mainlayout->setAlignment(Qt::AlignCenter);
         LoadNextTasks->setStyleSheet("QPushButton{background-color: rgb(70,220,50);} QPushButton:hover {background-color: rgb(90,180,90); }");
         LoadPrevTasks->setStyleSheet("QPushButton{background-color: rgb(70,220,50);} QPushButton:hover {background-color: rgb(90,180,90); }");
-        LoadPrevTasks->setFixedSize(screen()->availableGeometry().size().width() * 0.5,200);
+        LoadPrevTasks->setFixedSize(screen()->availableGeometry().size().width() * 0.725,200);
 
         connect(LoadPrevTasks, &QPushButton::clicked, this, [=]() { LoadPrevList(listDateStart - 1, taskLayout); });
         connect(LoadNextTasks, &QPushButton::clicked, this, [=]() { LoadNextList(listDateEnd + 1, taskLayout); });
@@ -805,5 +807,25 @@ void MainWindow::saveLink(QDialog *dialog, QString Prerequisite , QString Requis
         on_MonthView_clicked();
         MonthChange = false;
     }
+
+}
+
+void MainWindow::CreatedPopUp(){
+    QLabel *Popup = new QLabel(this);
+    Popup->setText("Task successfully updated!");
+    Popup->show();
+    Popup->setStyleSheet("background-color: rgb(210,240,210); border-radius: 5px");
+    Popup->setGeometry(15, 800, 140, 100);
+    QTimer::singleShot(2000, Popup, &QObject::deleteLater);
+}
+
+void MainWindow::DeletedPopUp(){
+    QLabel *Popup = new QLabel(this);
+    Popup->setText("Task successfully removed!");
+    Popup->show();
+    Popup->setGeometry(15, 800, 140, 100);
+    Popup->setStyleSheet("background-color: rgb(210,240,210); border-radius: 5px");
+    QTimer::singleShot(2000, Popup, &QObject::deleteLater);
+
 
 }
