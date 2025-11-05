@@ -730,7 +730,7 @@ void MainWindow::LoadPrevList(int start, QVBoxLayout *layout){
                 Task *taskToChange = &TaskStorage[start][i];
                 TaskInfoVisualEffect(TaskVisualButton, taskToChange);
                 connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { TaskButton(start, i); });
-                layout->addWidget(taskcard);
+                layout->insertWidget(0, taskcard);
             }
         }
         start--;
@@ -815,7 +815,7 @@ void MainWindow::CreatedPopUp(){
     Popup->setText("Task successfully updated!");
     Popup->show();
     Popup->setStyleSheet("background-color: rgb(210,240,210); border-radius: 5px");
-    Popup->setGeometry(15, 800, 140, 100);
+    Popup->setGeometry(15, 575, 140, 75);
     QTimer::singleShot(2000, Popup, &QObject::deleteLater);
 }
 
@@ -823,7 +823,7 @@ void MainWindow::DeletedPopUp(){
     QLabel *Popup = new QLabel(this);
     Popup->setText("Task successfully removed!");
     Popup->show();
-    Popup->setGeometry(15, 800, 140, 100);
+    Popup->setGeometry(15, 575, 140, 75);
     Popup->setStyleSheet("background-color: rgb(210,240,210); border-radius: 5px");
     QTimer::singleShot(2000, Popup, &QObject::deleteLater);
 
