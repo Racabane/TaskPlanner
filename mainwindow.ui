@@ -113,7 +113,7 @@
      <string>Month View</string>
     </property>
    </widget>
-   <widget class="QToolButton" name="toolButton">
+   <widget class="QPushButton" name="toolButton">
     <property name="geometry">
      <rect>
       <x>25</x>
@@ -125,11 +125,8 @@
     <property name="text">
      <string>Groups</string>
     </property>
-    <property name="popupMode">
-     <enum>QToolButton::ToolButtonPopupMode::DelayedPopup</enum>
-    </property>
    </widget>
-   <widget class="QToolButton" name="Prev">
+   <widget class="QPushButton" name="Prev">
     <property name="geometry">
      <rect>
       <x>25</x>
@@ -139,13 +136,10 @@
      </rect>
     </property>
     <property name="text">
-     <string>PushButton</string>
-    </property>
-    <property name="arrowType">
-     <enum>Qt::ArrowType::LeftArrow</enum>
+     <string>&lt;</string>
     </property>
    </widget>
-   <widget class="QToolButton" name="Next">
+   <widget class="QPushButton" name="Next">
     <property name="geometry">
      <rect>
       <x>85</x>
@@ -155,10 +149,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>PushButton</string>
-    </property>
-    <property name="arrowType">
-     <enum>Qt::ArrowType::RightArrow</enum>
+     <string>&gt;</string>
     </property>
    </widget>
    <widget class="QLabel" name="MonthDisplay">

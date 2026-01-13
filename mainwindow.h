@@ -116,28 +116,30 @@ private slots:
     void loadWeek();
     void on_Prev_clicked();
     void on_Next_clicked();
-    void saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit *Name, QPlainTextEdit *Desc, QComboBox *StatusBox, QComboBox *PriorityBox);
+    void saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit *Name, QPlainTextEdit *Desc, QComboBox *StatusBox, QComboBox *PriorityBox, QComboBox *GroupBox);
     void deleteTaskInfo( QDialog *dialog, int column, int row);
     void on_MonthView_clicked();
     QString getMonthName(QDate date);
     void getWeekDayCycle(QDate date);
-
-
+    void Unlink(int preday, int preslot, int reqday, int reqslot);
     void on_ListView_clicked();
     void CreatedPopUp();
     void DeletedPopUp();
-
-
     void LoadNextList(int start, QVBoxLayout *layout);
     void LoadPrevList(int start,  QVBoxLayout *layout);
     QString DateFormatMonthDay(int date);
     void loadfile();
     void savefile();
-
     void saveLink(QDialog *dialog, QString Prerequisite , QString Requisite);
     void on_Link_clicked();
+    void GroupsDropDown(QPushButton * Button);
+    void AddNewGroup();
+    void DeleteAGroup();
+    void saveGroup( QDialog *dialog, QString saveGroup);
+    void SetActiveGroup(QString group);
+    void saveRemovalOfGroup( QDialog *dialog, QString group);
 
-private:
+    private:
     Ui::MainWindow *ui;
     QLabel *label = nullptr;
 
@@ -158,8 +160,8 @@ private:
     int listDate = 0;
     int listDateEnd = 0;
     QScrollArea *area = nullptr;
-
-
+    QWidget *GroupPopUp = nullptr;
+    QVBoxLayout *groupLayout = nullptr;
     //sets this private variable at start up to current date and will be used to track the date as use naviagtes through calender
     QDate trackingdate = QDate::currentDate();
 
@@ -168,6 +170,7 @@ private:
     struct Task {
         QString name;
         QString description;
+        QString group;
         enum Priority { Low, Mid, High};
         Priority priority = Low;
         enum Status { Unstarted, Working, Completed};
@@ -182,6 +185,10 @@ private:
 
     //The stroage holding all the tasks
     Task TaskStorage[366][5];
+
+    //The storgae to hold all groups
+    QString Groups[10];
+    int LastGroup = 0;
 
 };
 

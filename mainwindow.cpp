@@ -20,14 +20,19 @@ MainWindow::MainWindow(QWidget *parent)
     //sets the table size in the main window
     table = ui->tableWidget;
 
-    //Creates pointers to the buttons created in the ui form so they can be accessed code wise
-    QPushButton *CreateButton = ui->pushButton;
-    QPushButton *ViewButton = ui->ListView;
-    QPushButton *MonthButton = ui->MonthView;
-    QToolButton *GroupsDrop = ui->toolButton;
-    QToolButton *LeftArrow = ui->Prev;
-    QToolButton *RightArrow = ui->Next;
-    QPushButton *LinkButton = ui->Link;
+    //
+    QPushButton *GroupsDrop = ui->toolButton;
+    GroupPopUp = new QWidget(nullptr, Qt::Popup);
+    groupLayout = new QVBoxLayout(GroupPopUp);
+    connect(GroupsDrop, &QPushButton::clicked, this, [=]() { GroupsDropDown(GroupsDrop);});
+    QPushButton *AddGroup = new QPushButton("Add Group");
+    QPushButton *DeleteGroup = new QPushButton("Delete Group");
+    AddGroup->setStyleSheet("background-color: green");
+    DeleteGroup->setStyleSheet("background-color: red");
+    groupLayout->addWidget(AddGroup);
+    groupLayout->addWidget(DeleteGroup);
+    connect(AddGroup, &QPushButton::clicked, this, [=]() { AddNewGroup();});
+    connect(DeleteGroup, &QPushButton::clicked, this, [=]() { DeleteAGroup();});
 
     //styles the table
     table->setStyleSheet("QHeaderView::section{background-color: rgb(90,170,90); border: 0px; margin: 0px; padding: 0px;} QTableWidget{background-color:  rgb(210,240,210); }");
@@ -35,15 +40,13 @@ MainWindow::MainWindow(QWidget *parent)
     //styles the buttons in the tool bar
     QString baseButtonDesign = "QPushButton {background-color: rgb(130,230,160); border-color: rgb(75,120,75); border-style: solid; border-radius: 5px; border-width: 5px;} "
         " QPushButton:hover {background-color: rgb(110,200,110); border-color: rgb(75,110,75);} QPushButton:pressed {background-color: rgb(150,230,150); border-color: rgb(95,130,95);}";
-    QString baseToolButtonDesign =  "QToolButton {background-color: rgb(130,230,160); border-color: rgb(75,120,75); border-style: solid; border-radius: 5px; border-width: 5px;} "
-        " QToolButton:hover {background-color: rgb(110,200,110); border-color: rgb(75,110,75);} QToolButton:pressed {background-color: rgb(130,220,130); border-color: rgb(110,130,110);}";
-    CreateButton->setStyleSheet(baseButtonDesign );
-    ViewButton->setStyleSheet(baseButtonDesign );
-    MonthButton->setStyleSheet(baseButtonDesign);
-    GroupsDrop->setStyleSheet(baseToolButtonDesign);
-    LeftArrow->setStyleSheet(baseToolButtonDesign);
-    RightArrow->setStyleSheet(baseToolButtonDesign);
-    LinkButton->setStyleSheet(baseButtonDesign );
+    ui->pushButton->setStyleSheet(baseButtonDesign );
+    ui->ListView->setStyleSheet(baseButtonDesign );
+    ui->MonthView->setStyleSheet(baseButtonDesign);
+    GroupsDrop->setStyleSheet(baseButtonDesign);
+    ui->Prev->setStyleSheet(baseButtonDesign);
+    ui->Next->setStyleSheet(baseButtonDesign);
+    ui->Link->setStyleSheet(baseButtonDesign );
 
     //sizes the table on the mainwindow and strech columns and rows to match table size
     table->setGeometry(175, 0, screenSize.width() * 0.8, screenSize.height() * 0.9);
@@ -63,18 +66,146 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::AddNewGroup(){
+
+    QDialog *dialog = new QDialog();
+    dialog->setWindowModality(Qt::WindowModality::ApplicationModal);
+    dialog->setMinimumHeight(200);
+    dialog->setMinimumWidth(480);
+    dialog->setStyleSheet("QDialog {background-color: rgb(143,188,143)}");
+
+    QLabel *Label = new QLabel();
+    Label->setText("Enter a Name for the new Group");
+    Label->setParent(dialog);
+    Label->show();
+    Label->setGeometry(25, 10, 400, 20);
+
+    QLineEdit *Group = new QLineEdit();
+    Group->setGeometry(150, 10, 100, 20);
+    Group->setParent(dialog);
+    Group->show();
+
+    QPushButton *submitButton = new QPushButton("submit");
+    submitButton->setParent(dialog);
+    submitButton->show();
+    submitButton->setGeometry(350,275, 100,20);
+    connect(submitButton,&QPushButton::clicked, this,  [=]() { saveGroup(dialog, Group->text()); });
+    dialog->show();
+
+}
+void MainWindow::saveGroup( QDialog *dialog, QString group){
+    Groups[LastGroup] = group;
+    LastGroup++;
+    QPushButton *groupbutton = new QPushButton(group);
+    groupbutton->setStyleSheet("background-color: blue");
+    groupLayout->addWidget(groupbutton);
+    connect(groupbutton, &QPushButton::clicked, this, [=]() { SetActiveGroup(group);});
+    dialog->close();
+}
+
+void MainWindow::SetActiveGroup(QString group){
+}
+
+void MainWindow::DeleteAGroup(){
+    QDialog *dialog = new QDialog();
+    dialog->setWindowModality(Qt::WindowModality::ApplicationModal);
+    dialog->setMinimumHeight(100);
+    dialog->setMinimumWidth(480);
+    dialog->setStyleSheet("QDialog {background-color: rgb(143,188,143)}");
+
+    QLabel *Label = new QLabel();
+    Label->setText("Select Group to Remove: ");
+    Label->setParent(dialog);
+    Label->show();
+    Label->setGeometry(25, 20, 400, 20);
+
+    QComboBox *GroupBox = new QComboBox();
+    GroupBox->setParent(dialog);
+    GroupBox->show();
+    GroupBox->setGeometry(175, 20, 100, 20);
+    for(int i = 0; i < LastGroup; i++){
+        if(!Groups[i].isEmpty()){
+            GroupBox->addItem(Groups[i]);
+        }
+    }
+
+    QPushButton *submitButton = new QPushButton("submit");
+    submitButton->setParent(dialog);
+    submitButton->show();
+    submitButton->setGeometry(350,100, 100,20);
+    connect(submitButton,&QPushButton::clicked, this,  [=]() { saveRemovalOfGroup(dialog, GroupBox->currentText()); });
+    dialog->show();
+}
+void MainWindow::saveRemovalOfGroup( QDialog *dialog, QString group){
+    int arrayIndex = -1;
+    for(int l = 0; l < LastGroup; l++){
+        if(Groups[l] == group){
+            arrayIndex = l;
+            break;
+        }
+    }
+    for(int k = arrayIndex; k < LastGroup - 1; k++){
+        Groups[k] = Groups[k + 1];
+    }
+    LastGroup--;
+    Groups[LastGroup].clear();
+
+    for(int i = 0; i < groupLayout->count(); i++){
+        QPushButton *buttonToRemove = static_cast<QPushButton*>(groupLayout->itemAt(i)->widget());
+        if(buttonToRemove->text() == group){
+            groupLayout->removeWidget(buttonToRemove);
+            buttonToRemove->deleteLater();
+            break;
+        }
+    }
+
+    for(int i = 0; i < 366; i++){
+        for(int k = 0; k < 5; k++){
+            Task *task = &TaskStorage[i][k];
+            if(!task->name.isEmpty() && task->group == group){
+                task->group.clear();
+            }
+        }
+    }
+    dialog->close();
+}
+
+//Dropdown menu functioan;lity for groups button in mainwindow
+void MainWindow::GroupsDropDown(QPushButton *Button){
+    //find postion of button then move popo up below it and show it aslo add buttons to create and dlete groups and connect and then go addd a plcae for groups,
+    GroupPopUp->move(Button->mapToGlobal(QPoint(0, Button->height())));
+    GroupPopUp->show();
+}
+
 //open lauch of application will load data from txt file into task storage
 void MainWindow::loadfile(){
     std::ifstream infile;
     infile.open("tasksforqtapp.txt");
     std::string line;
+    QPushButton *GroupsDrop = ui->toolButton;
+    std::getline(infile, line);
+    QString convertedLine = QString::fromStdString(line);
+    if(convertedLine.isEmpty()){
+        return;
+    }
+    QStringList values = convertedLine.split('|');
+    LastGroup = 0;
+
+    for(int i = 1; i < values.size(); i++){
+        Groups[i - 1] = values[i];
+        QPushButton *groupbutton = new QPushButton(values[i]);
+        groupbutton->setStyleSheet("background-color: blue");
+        groupLayout->addWidget(groupbutton);
+        connect(groupbutton, &QPushButton::clicked, this, [=]() { SetActiveGroup(values[i]);});
+        LastGroup++;
+    }
 
     while(std::getline(infile, line)){
         QString convertedLine = QString::fromStdString(line);
         QStringList values = convertedLine.split('|');
-         Task *task = &TaskStorage[values[0].toInt()][values[1].toInt()];
+        Task *task = &TaskStorage[values[0].toInt()][values[1].toInt()];
         task->name = values[2];
-        values[3].replace("\*n", "\n");
+        values[3].replace("\\*n", "\n");
         task->description = values[3];
         task->priority = static_cast<Task::Priority>(values[4].toInt());
         task->status = static_cast<Task::Status>(values[5].toInt());
@@ -82,9 +213,8 @@ void MainWindow::loadfile(){
         task->prerequisiteSlot = values[7].toInt();
         task->requisiteDay = values[8].toInt();
         task->requisiteSlot = values[9].toInt();
-
+        task->group = values[10];
     }
-
 }
 
 //everything in taskstorage will be saved onto the txt file
@@ -92,14 +222,22 @@ void MainWindow::savefile(){
     std::ofstream outfile;
     outfile.open("tasksforqtapp.txt");
     std::string line;
+    outfile << "Groups |";
+    for(int k = 0; k < LastGroup; k++){
+        outfile << Groups[k].toStdString();
+        if(k < LastGroup - 1){
+            outfile << "|";
+        }
+    }
+    outfile << "\n";
 
     for(int i = 0; i < 366; i++){
         for(int k = 0; k < 5; k++){
             Task *task = &TaskStorage[i][k];
             if(!task->name.isEmpty()){
-                task->description.replace("\n", "\*n");
+                task->description.replace("\n", "\\*n");
                 outfile << i << "|" << k << "|" << task->name.toStdString() << "|" << task->description.toStdString() << "|" << task->priority << "|" << task->status << "|" << task->prerequisiteDay << "|" <<
-                    task->prerequisiteSlot << "|" << task->requisiteDay << "|" << task->requisiteSlot << "\n";
+                    task->prerequisiteSlot << "|" << task->requisiteDay << "|" << task->requisiteSlot << "|" << task->group.toStdString() << "\n";
             }
         }
     }
@@ -307,7 +445,6 @@ void MainWindow::TaskButton(int column, int row)
     Desc->setParent(dialog);
     Desc->show();
 
-
     //Tells the user to enter task priority in the dropdown field
     QLabel *PriorityLabel = new QLabel();
     PriorityLabel->setText("Task Priority: ");
@@ -344,47 +481,102 @@ void MainWindow::TaskButton(int column, int row)
     StatusBox->setCurrentIndex(selectedTask->status);
 
     QLabel *PreReq = new QLabel();
-    QString text = "Prerequiste Task: None";
-    if(!TaskStorage[selectedTask->prerequisiteDay][selectedTask->prerequisiteSlot].name.isEmpty()){
-        text = "Task Prerequiste Task: " + TaskStorage[selectedTask->prerequisiteDay][selectedTask->prerequisiteSlot].name;
+
+    QPushButton *unlinkpre = new QPushButton("None");
+
+    unlinkpre->setGeometry(125, 225, 150, 20);
+    unlinkpre->setParent(dialog);
+    unlinkpre->show();
+
+    QPushButton *unlinkreq = new QPushButton("None");
+    unlinkreq->setGeometry(125, 250, 150, 20);
+    unlinkreq->setParent(dialog);
+    unlinkreq->show();
+
+    QString text = "Prerequiste Task: ";
+    QLabel *Req = new QLabel();
+    QString text2 = "Requiste Task: ";
+
+    if(selectedTask->prerequisiteDay > -1  && selectedTask->prerequisiteSlot > -1 && !TaskStorage[selectedTask->prerequisiteDay][selectedTask->prerequisiteSlot].name.isEmpty()){
+        unlinkpre->setText(TaskStorage[selectedTask->prerequisiteDay][selectedTask->prerequisiteSlot].name);
+        connect(unlinkpre, &QPushButton::clicked, this, [=]() { Unlink(selectedTask->prerequisiteDay, selectedTask->prerequisiteSlot, column, row); });
+    }
+    if(selectedTask->requisiteDay > -1 && selectedTask->requisiteSlot > -1 && !TaskStorage[selectedTask->requisiteDay][selectedTask->requisiteSlot].name.isEmpty()){
+        unlinkreq->setText( TaskStorage[selectedTask->requisiteDay][selectedTask->requisiteSlot].name);
+        connect(unlinkreq, &QPushButton::clicked, this, [=]() { Unlink(column, row, selectedTask->requisiteDay, selectedTask->requisiteSlot ); });
+
     }
     PreReq->setText(text);
     PreReq->setParent(dialog);
     PreReq->show();
     PreReq->setGeometry(25, 225, 150, 20);
-
-    QLabel *Req = new QLabel();
-    QString text2 = "Requiste Task: None";
-    if(!TaskStorage[selectedTask->requisiteDay][selectedTask->requisiteSlot].name.isEmpty()){
-        text2 = "Task Prerequiste Task: " + TaskStorage[selectedTask->requisiteDay][selectedTask->requisiteSlot].name;
-    }
     Req->setText(text2);
     Req->setParent(dialog);
     Req->show();
-    Req->setGeometry(225, 225, 150, 20);
+    Req->setGeometry(25, 250, 150, 20);
 
+    //Tells the user to enter task status in the dropdown field
+    QLabel *GroupLabel = new QLabel();
+    GroupLabel->setText("Group: ");
+    GroupLabel->setParent(dialog);
+    GroupLabel->show();
+    GroupLabel->setGeometry(25, 280, 100, 20);
 
+    //The field where users select a group
+    QComboBox *GroupBox = new QComboBox();
+    GroupBox->setParent(dialog);
+    GroupBox->show();
+    GroupBox->setGeometry(100, 280, 100, 20);
+    GroupBox->addItem("None");
+    for(int i = 0; i < LastGroup; i++){
+        if(!Groups[i].isEmpty()){
+            GroupBox->addItem(Groups[i]);
+        }
+    }
+    if(GroupBox->findText(selectedTask->group) != -1){
+        GroupBox->setCurrentIndex(GroupBox->findText(selectedTask->group));
+    }else{
+        GroupBox->setCurrentIndex(0);
+    }
 
     //The submit button in the edit menu that will handle saving the info
     QPushButton *submitButton = new QPushButton("submit");
     submitButton->setParent(dialog);
     submitButton->show();
-    submitButton->setGeometry(350,300, 100,30);
-    connect(submitButton,&QPushButton::clicked, this,  [=]() { saveTaskInfo(dialog, column, row, Name, Desc, StatusBox, PriorityBox); });
+    submitButton->setGeometry(350,320, 100,30);
+    connect(submitButton,&QPushButton::clicked, this,  [=]() { saveTaskInfo(dialog, column, row, Name, Desc, StatusBox, PriorityBox, GroupBox); });
 
     //The delete button in the edit menu that will handle deleting the info
     QPushButton *deleteButton = new QPushButton("delete");
     deleteButton->setParent(dialog);
     deleteButton->show();
-    deleteButton->setGeometry(25,300, 100,30);
+    deleteButton->setGeometry(25,320, 100,30);
     connect(deleteButton,&QPushButton::clicked, this,  [=]() { deleteTaskInfo(dialog, column, row); });
 
     //shows the edit menu
     dialog->show();
 }
 
+void MainWindow::Unlink(int preday, int preslot, int reqday, int reqslot){
+    TaskStorage[preday][preslot].requisiteDay = -1;
+    TaskStorage[preday][preslot].requisiteSlot = -1;
+    TaskStorage[reqday][reqslot].prerequisiteDay = -1;
+    TaskStorage[reqday][reqslot].prerequisiteSlot = -1;
+    //refreshes the tasks in the table to show the reflected changes to the task
+    if(monthViewActive == false){
+        loadWeek();
+    }else if(ListViewActive){
+        QVBoxLayout *ptr = static_cast<QVBoxLayout*>(area->layout());
+        LoadNextList(listDate, ptr);
+    }else{
+        MonthChange = true;
+        on_MonthView_clicked();
+        MonthChange = false;
+    }
+}
+
 //This function is for when the user clicks the submit button within the edit menu that is used for editing tasks
-void MainWindow::saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit *Name, QPlainTextEdit *Desc, QComboBox *StatusBox, QComboBox *PriorityBox ){
+void MainWindow::saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit *Name, QPlainTextEdit *Desc, QComboBox *StatusBox, QComboBox *PriorityBox, QComboBox *GroupBox ){
     //Gets the relavent task within the task storage that users is editing
     Task *selectedTask = &TaskStorage[column][row];
 
@@ -394,6 +586,10 @@ void MainWindow::saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit 
         selectedTask->name = "Blank";
     }
     selectedTask->description = Desc->toPlainText();
+
+    if(GroupBox->currentText() != "None"){
+        selectedTask->group = GroupBox->currentText();
+    }
 
     // selectedTask->priority = PriorityBox->currentText();//maybe optimize, https://stackoverflow.com/questions/16955918/qt-using-enums-with-qcombobox
     if(PriorityBox->currentText() == "Low"){
@@ -562,28 +758,25 @@ void MainWindow::on_ListView_clicked()
         area = nullptr;
         QString baseButtonDesign = "QPushButton {background-color: rgb(130,230,160); border-color: rgb(75,120,75); border-style: solid; border-radius: 5px; border-width: 5px;} "
                                    " QPushButton:hover {background-color: rgb(110,200,110); border-color: rgb(75,110,75);} QPushButton:pressed {background-color: rgb(150,230,150); border-color: rgb(95,130,95);}";
-        QString baseToolButtonDesign =  "QToolButton {background-color: rgb(130,230,160); border-color: rgb(75,120,75); border-style: solid; border-radius: 5px; border-width: 5px;} "
-                                       " QToolButton:hover {background-color: rgb(110,200,110); border-color: rgb(75,110,75);} QToolButton:pressed {background-color: rgb(130,220,130); border-color: rgb(110,130,110);}";
         ui->MonthView->setStyleSheet(baseButtonDesign);
         ui->MonthView->setEnabled(true);
         ui->Link->setStyleSheet(baseButtonDesign);
         ui->Link->setEnabled(true);
         ui->pushButton->setStyleSheet(baseButtonDesign);
         ui->pushButton->setEnabled(true);
-        ui->toolButton->setStyleSheet(baseToolButtonDesign);
+        ui->toolButton->setStyleSheet(baseButtonDesign);
         ui->toolButton->setEnabled(true);
         ui->MonthDisplay->setStyleSheet(baseButtonDesign);
         ui->MonthDisplay->setEnabled(true);
-        ui->Prev->setStyleSheet(baseToolButtonDesign);
+        ui->Prev->setStyleSheet(baseButtonDesign);
         ui->Prev->setEnabled(true);
-        ui->Next->setStyleSheet(baseToolButtonDesign);
+        ui->Next->setStyleSheet(baseButtonDesign);
         ui->Next->setEnabled(true);
         table->show();
         loadWeek();
     }else{
         //clears screen to set up list view
         QString baseButtonDesign = "QPushButton {background-color: rgba(180,210,180,50%); border-color: rgba(140,150,140,50%); border-style: solid; border-radius: 5px; border-width: 5px;} ";
-        QString baseToolButtonDesign =  "QToolButton {background-color: rgba(180,210,180,50%); border-color: rgba(140,150,140,50%); border-style: solid; border-radius: 5px; border-width: 5px;} ";
         ListViewActive = true;
         monthViewActive = false;
         table->clearContents();
@@ -594,13 +787,13 @@ void MainWindow::on_ListView_clicked()
         ui->Link->setEnabled(false);
         ui->pushButton->setStyleSheet(baseButtonDesign);
         ui->pushButton->setEnabled(false);
-        ui->toolButton->setStyleSheet(baseToolButtonDesign);
+        ui->toolButton->setStyleSheet(baseButtonDesign);
         ui->toolButton->setEnabled(false);
         ui->MonthDisplay->setStyleSheet(baseButtonDesign);
         ui->MonthDisplay->setEnabled(false);
-        ui->Prev->setStyleSheet(baseToolButtonDesign);
+        ui->Prev->setStyleSheet(baseButtonDesign);
         ui->Prev->setEnabled(false);
-        ui->Next->setStyleSheet(baseToolButtonDesign);
+        ui->Next->setStyleSheet(baseButtonDesign);
         ui->Next->setEnabled(false);
 
         //making of the main lsit view that will show 20 task in scrollable area but can load a different 20 base on firsat and last button for performance
