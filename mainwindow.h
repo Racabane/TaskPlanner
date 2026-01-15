@@ -18,6 +18,8 @@
 #include <QCloseEvent>
 #include <QPlainTextEdit>
 #include <QTimer>
+#include <QSet>
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -190,6 +192,8 @@ private slots:
     QString Groups[10];
     int LastGroup = 0;
 
+    //For keeping track of groups being filtered
+    QSet<QString> ActiveGroups;
 };
 
 #endif // MAINWINDOW_H
