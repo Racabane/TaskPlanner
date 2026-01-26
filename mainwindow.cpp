@@ -26,8 +26,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(GroupsDrop, &QPushButton::clicked, this, [=]() { GroupsDropDown(GroupsDrop);});
     QPushButton *AddGroup = new QPushButton("Add Group");
     QPushButton *DeleteGroup = new QPushButton("Delete Group");
-    AddGroup->setStyleSheet("background-color: green");
-    DeleteGroup->setStyleSheet("background-color: red");
+    AddGroup->setStyleSheet("QPushButton {background-color: green;} QPushButton:hover {background-color: rgb(90,180,90); }");
+    DeleteGroup->setStyleSheet("QPushButton {background-color: red;} QPushButton:hover {background-color: rgb(210,90,90); }");
     groupLayout->addWidget(AddGroup);
     groupLayout->addWidget(DeleteGroup);
     connect(AddGroup, &QPushButton::clicked, this, [=]() { AddNewGroup();});
@@ -94,7 +94,7 @@ void MainWindow::saveGroup( QDialog *dialog, QString group){
     Groups[LastGroup] = group;
     LastGroup++;
     QPushButton *groupbutton = new QPushButton(group);
-    groupbutton->setStyleSheet("background-color: blue");
+    groupbutton->setStyleSheet("QPushButton {background-color: blue;} QPushButton:hover {background-color: rgb(90,90,180); }");
     groupLayout->addWidget(groupbutton);
     connect(groupbutton, &QPushButton::clicked, this, [=]() { SetActiveGroup(group);});
     dialog->close();
@@ -114,9 +114,9 @@ void MainWindow::SetActiveGroup(QString group){
         QPushButton *buttonToStyle = static_cast<QPushButton*>(groupLayout->itemAt(i)->widget());
         if(buttonToStyle->text() == group){
             if(ActiveGroups.contains(group)){
-                buttonToStyle->setStyleSheet("background-color: yellow; color: black");
+                buttonToStyle->setStyleSheet("QPushButton {background-color: yellow; color: black;} QPushButton:hover {background-color: rgb(180,180,90); }");
             }else{
-                buttonToStyle->setStyleSheet("background-color: blue");
+                buttonToStyle->setStyleSheet("QPushButton {background-color: blue;} QPushButton:hover {background-color: rgb(90,90,180); }");
             }
             break;
         }
@@ -230,7 +230,7 @@ void MainWindow::loadfile(){
     for(int i = 1; i < values.size(); i++){
         Groups[i - 1] = values[i];
         QPushButton *groupbutton = new QPushButton(values[i]);
-        groupbutton->setStyleSheet("background-color: blue");
+        groupbutton->setStyleSheet("QPushButton {background-color: blue;} QPushButton:hover {background-color: rgb(90,90,180); }");
         groupLayout->addWidget(groupbutton);
         connect(groupbutton, &QPushButton::clicked, this, [=]() { SetActiveGroup(values[i]);});
         LastGroup++;
@@ -424,7 +424,7 @@ void MainWindow::on_Next_clicked()
 void MainWindow::on_pushButton_clicked()
 {
     //Name of label while dragging
-    label = new QLabel("New Task", this);
+    label = new QLabel("Task", this);
     label->setStyleSheet("QLabel { background-color : gray; color : black; }");
 
     //Places the label once created where the users cursor is at
@@ -434,6 +434,26 @@ void MainWindow::on_pushButton_clicked()
 
     //sets the private variable dragging to true for other fuctions to use
     dragging = true;
+}
+
+void MainWindow::movetask(QDialog *dialog, int column, int row){
+    dialog->close();
+    movingtask = true;
+    tempMoving = TaskStorage[column][row];
+
+    //The Data Type Task is created with no information a blank
+    Task blank;
+
+    //The blank is used to overwirte any saved infomartion of the task that is saved in order to return to how it was before to create the effect of deletion
+    TaskStorage[column][row] = blank;
+    if(monthViewActive){
+        MonthChange = true;
+        on_MonthView_clicked();
+        MonthChange = false;
+    }else{
+        loadWeek();
+    }
+    on_pushButton_clicked();
 }
 
 //This fuction is to open the edit menu for editing tasks
@@ -526,6 +546,11 @@ void MainWindow::TaskButton(int column, int row)
         GroupBox->setCurrentIndex(0);
     }
 
+    if(!ListViewActive){
+        QPushButton *movetaskbutton = new QPushButton("Move task", dialog);
+        movetaskbutton->setGeometry(250, 280, 100, 20);
+        connect(movetaskbutton,&QPushButton::clicked, this,  [=]() { movetask(dialog, column, row); });
+    }
     //The submit button in the edit menu that will handle saving the info
     QPushButton *submitButton = new QPushButton("submit", dialog);
     submitButton->setGeometry(350,320, 100,30);

@@ -65,7 +65,11 @@ protected:
 
                 //The data type that will store the new task info as well as the visual button that will represent it on the table
                 Task newTask;
+                if(movingtask){
+                    newTask = tempMoving;
+                }
                 QPushButton *TaskVisualButton = new QPushButton("New Task", this);
+                bool placed = false;
 
                 //checks if the box on the table clicked is empty in week view to ensure user is not attempting to creaste a task where one alreay resides
                 if(!table->cellWidget(row, column) && (monthViewActive == false)){
@@ -75,6 +79,7 @@ protected:
                     TaskStorage[trackingdate.addDays(column).dayOfYear()][row] = newTask;
                     //connects the visual button to the right task in the array so that when the button is click on the table it will change the correct task
                     connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { TaskButton(trackingdate.addDays(column).dayOfYear() ,row); });
+                    placed = true;
                 }
                 //when creating a new task and dropping in during month view is handled differently then week view since each box in the table now represents a day instead a individual task
                 else if(monthViewActive){
@@ -99,14 +104,28 @@ protected:
                             TaskStorage[GridDay][count] = newTask;
                             //connect the button to that datatype
                             connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { TaskButton(GridDay ,count); });
+                            placed = true;
                         }
                     }
                 }
-                //cleans up the label for user visual feedback since no longer needed
-                delete label;
-                label = nullptr;
-                //make sure it know that nothing is being dragged anymore
-                dragging = false;
+                if(placed){
+                    if(movingtask){
+                        if(monthViewActive){
+                            MonthChange = true;
+                            on_MonthView_clicked();
+                            MonthChange = false;
+                        }else{
+                            loadWeek();
+                        }
+                    }
+                    //cleans up the label for user visual feedback since no longer needed
+                    movingtask = false;
+                    delete label;
+                    label = nullptr;
+                    //make sure it know that nothing is being dragged anymore
+                    dragging = false;
+
+                }
             }
         }
     }
@@ -140,6 +159,7 @@ private slots:
     void saveGroup( QDialog *dialog, QString saveGroup);
     void SetActiveGroup(QString group);
     void saveRemovalOfGroup( QDialog *dialog, QString group);
+    void movetask(QDialog *dialog, int column, int row);
 
     private:
     Ui::MainWindow *ui;
@@ -150,6 +170,7 @@ private slots:
 
     //tracking when the user is dragging something
     bool dragging = false;
+    bool movingtask = false;
 
     //tracking when user is viewing calaender in month view
     bool monthViewActive = false;
@@ -182,7 +203,7 @@ private slots:
         int requisiteDay = -1;
         int requisiteSlot= -1;
     };
-
+    Task tempMoving;
     void TaskInfoVisualEffect(QPushButton *TaskVisualButton, Task *taskToChange);
 
     //The stroage holding all the tasks
