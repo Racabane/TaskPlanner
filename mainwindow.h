@@ -160,6 +160,7 @@ private slots:
     void SetActiveGroup(QString group);
     void saveRemovalOfGroup( QDialog *dialog, QString group);
     void movetask(QDialog *dialog, int column, int row);
+    void refreshList(QVBoxLayout *layout);
 
     private:
     Ui::MainWindow *ui;
@@ -179,9 +180,11 @@ private slots:
     bool MonthChange = false;
 
     bool ListViewActive = false;
+    bool ListLoadingState = true;
     int listDateStart = 0;
     int listDate = 0;
     int listDateEnd = 0;
+    QVBoxLayout *taskLayout = nullptr;
     QScrollArea *area = nullptr;
     QWidget *GroupPopUp = nullptr;
     QVBoxLayout *groupLayout = nullptr;

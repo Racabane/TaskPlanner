@@ -571,11 +571,10 @@ void MainWindow::Unlink(int preday, int preslot, int reqday, int reqslot){
     TaskStorage[reqday][reqslot].prerequisiteDay = -1;
     TaskStorage[reqday][reqslot].prerequisiteSlot = -1;
     //refreshes the tasks in the table to show the reflected changes to the task
-    if(monthViewActive == false){
+    if(ListViewActive){
+        refreshList(taskLayout);
+    }else if(monthViewActive == false){
         loadWeek();
-    }else if(ListViewActive){
-        QVBoxLayout *ptr = static_cast<QVBoxLayout*>(area->layout());
-        LoadNextList(listDate, ptr);
     }else{
         MonthChange = true;
         on_MonthView_clicked();
@@ -618,21 +617,20 @@ void MainWindow::saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit 
         selectedTask->status = Task::Completed;
     }
 
-    //closes the edit menu of the task
-    dialog->close();
-    CreatedPopUp();
-
     //refreshes the tasks in the table to show the reflected changes to the task
-    if(monthViewActive == false){
+    if(ListViewActive){
+        refreshList(taskLayout);
+    }else if(monthViewActive == false){
         loadWeek();
-    }else if(ListViewActive){
-        QVBoxLayout *ptr = static_cast<QVBoxLayout*>(area->layout());
-        LoadNextList(listDate, ptr);
     }else{
         MonthChange = true;
         on_MonthView_clicked();
         MonthChange = false;
     }
+
+    //closes the edit menu of the task
+    dialog->close();
+    CreatedPopUp();
 }
 
 //This function is for when the user clicks the delete button within the edit menu that is used for editing tasks
@@ -653,6 +651,8 @@ void MainWindow::deleteTaskInfo(QDialog *dialog, int column, int row){
         MonthChange = true;
         on_MonthView_clicked();
         MonthChange = false;
+    }else if(ListViewActive){
+        refreshList(taskLayout);
     }else{
         loadWeek();
     }
@@ -821,7 +821,7 @@ void MainWindow::on_ListView_clicked()
         // container->setStyleSheet("background-color: rgb(100,0,0);");
 
         QVBoxLayout *mainlayout = new QVBoxLayout(container);
-        QVBoxLayout *taskLayout = new QVBoxLayout(taskContainer);
+        taskLayout = new QVBoxLayout(taskContainer);
 
         QPushButton *LoadPrevTasks = new QPushButton("Load Previous Tasks");
         QPushButton *LoadNextTasks = new QPushButton("Load Next Tasks");
@@ -831,8 +831,8 @@ void MainWindow::on_ListView_clicked()
         LoadPrevTasks->setStyleSheet("QPushButton{background-color: rgb(70,220,50);} QPushButton:hover {background-color: rgb(90,180,90); }");
         LoadPrevTasks->setFixedSize(screen()->availableGeometry().size().width() * 0.725,200);
 
-        connect(LoadPrevTasks, &QPushButton::clicked, this, [=]() { LoadPrevList(listDateStart - 1, taskLayout); });
-        connect(LoadNextTasks, &QPushButton::clicked, this, [=]() { LoadNextList(listDateEnd + 1, taskLayout); });
+        connect(LoadPrevTasks, &QPushButton::clicked, this, [=]() { ListLoadingState = false; LoadPrevList(listDateStart - 1, taskLayout); });
+        connect(LoadNextTasks, &QPushButton::clicked, this, [=]() { ListLoadingState = true; LoadNextList(listDateEnd + 1, taskLayout); });
 
 
         mainlayout->addWidget(LoadPrevTasks);
@@ -841,8 +841,6 @@ void MainWindow::on_ListView_clicked()
         //fuction that will find 20 tasks
         LoadNextList(listDateStart, taskLayout);
         mainlayout->addWidget(LoadNextTasks);
-
-
     }
 
 }
@@ -931,7 +929,7 @@ void MainWindow::LoadPrevList(int start, QVBoxLayout *layout){
                 innerlayout->addWidget(TaskVisualButton);
                 Task *taskToChange = &TaskStorage[start][i];
                 TaskInfoVisualEffect(TaskVisualButton, taskToChange);
-                connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { TaskButton(start, i); });
+                connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { TaskButton(start, i);});
                 layout->insertWidget(0, taskcard);
             }
         }
@@ -943,6 +941,16 @@ void MainWindow::LoadPrevList(int start, QVBoxLayout *layout){
     }else{
         listDateEnd = 0;
         listDateStart = 0;
+    }
+}
+
+void MainWindow::refreshList(QVBoxLayout *layout){
+    if(ListLoadingState){
+        LoadPrevList(listDateStart - 1, layout);
+        LoadNextList(listDateEnd + 1, layout);
+    }else{
+        LoadNextList(listDateEnd + 1, layout);
+        LoadPrevList(listDateStart - 1, layout);
     }
 }
 
