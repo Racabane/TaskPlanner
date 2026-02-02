@@ -19,6 +19,7 @@
 #include <QPlainTextEdit>
 #include <QTimer>
 #include <QSet>
+#include <QGraphicsOpacityEffect>
 
 
 QT_BEGIN_NAMESPACE

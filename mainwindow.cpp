@@ -723,13 +723,14 @@ void MainWindow::getWeekDayCycle(QDate date){
 //fuction to style task buttons in table
 void MainWindow::TaskInfoVisualEffect(QPushButton *TaskVisualButton, Task *taskToChange){
     QString base ="QPushButton{ color: black; border: solid; border-radius: 5px;";
-
+    QString color;
+    QGraphicsOpacityEffect *progress = new QGraphicsOpacityEffect(TaskVisualButton);
     if(taskToChange->priority == Task::Low){
-        base += "background-color: rgb(70,220,50);";
+        color = "background-color: rgb(150,240,240);";
     } else if(taskToChange->priority == Task::Mid){
-        base += "background-color: rgb(230,250,0);";
+        color = "background-color: rgb(230,250,100);";
     } else{
-        base += "background-color: rgb(220,70,50);";
+        color = "background-color: rgb(220,100,70);";
     }
 
     if(taskToChange->prerequisiteDay != -1){
@@ -740,23 +741,25 @@ void MainWindow::TaskInfoVisualEffect(QPushButton *TaskVisualButton, Task *taskT
         base += " border-right: 6px solid rgb(30,100,30);";
     }
 
-    // if(taskToChange->status == Task::Unstarted){
-    //     base  += "QPushButton{border-color: rgb(170,170,160);;}";
-    // } else if(taskToChange->status == Task::Working){
-    //     base += "QPushButton{border-color: rgb(110,110,105);;}";
-    // } else{
-    //     base += "QPushButton{border-color: rgb(60,60,60);;}";
-    // }
+    if(taskToChange->status == Task::Unstarted){
+        progress->setOpacity(1.0);
+    } else if(taskToChange->status == Task::Working){
+        progress->setOpacity(0.65);
+    } else{
+        progress->setOpacity(0.3);
+        color = "background-color: rgb(163,200,163);";
+    }
+    base += color;
     base += "}";
 
     if(taskToChange->priority == Task::Low){
-        base += "QPushButton:hover {background-color: rgb(90,180,90); }";
+        base += "QPushButton:hover {background-color: rgb(130,220,220); } QPushButton:pressed {background-color: rgb(170,255,255); }";
     } else if(taskToChange->priority == Task::Mid){
-        base += "QPushButton:hover {background-color: rgb(200,220,0); }";
+        base += "QPushButton:hover {background-color:  rgb(210,230,80); } QPushButton:pressed {background-color: rgb(250,255,120); }";
     } else{
-        base += "QPushButton:hover {background-color: rgb(190,90,90); }";
+        base += "QPushButton:hover {background-color: rgb(200,80,50); } QPushButton:pressed {background-color: rgb(240,120,90); }";
     }
-
+    TaskVisualButton->setGraphicsEffect(progress);
     TaskVisualButton->setStyleSheet(base);
 }
 
