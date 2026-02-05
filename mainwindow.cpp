@@ -9,12 +9,10 @@ MainWindow::MainWindow(QWidget *parent)
 {
     //Loads the ui of the application
     ui->setupUi(this);
-    //sets color of mainwindow and text that is inherited to all children
-    this->setStyleSheet("background-color: rgb(143,188,143); color: black;");
 
     //sizes the main window based on the users screen
     QSize screenSize = screen()->availableGeometry().size();
-    resize(screenSize.width() * 0.9 ,screenSize.height() * 0.9);
+    resize(screenSize.width() ,screenSize.height());
 
     //sets the table size in the main window
     table = ui->tableWidget;
@@ -33,6 +31,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(AddGroup, &QPushButton::clicked, this, [=]() { AddNewGroup();});
     connect(DeleteGroup, &QPushButton::clicked, this, [=]() { DeleteAGroup();});
 
+    //sets color of mainwindow and text that is inherited to all children
+    this->setStyleSheet("background-color: rgb(143,188,143); color: black;");
+
     //styles the table
     table->setStyleSheet("QHeaderView::section{background-color: rgb(90,170,90); border: 0px; margin: 0px; padding: 0px;} QTableWidget{background-color:  rgb(210,240,210); }");
 
@@ -48,15 +49,13 @@ MainWindow::MainWindow(QWidget *parent)
     ui->Link->setStyleSheet(baseButtonDesign );
 
     //sizes the table on the mainwindow and strech columns and rows to match table size
-    table->setGeometry(175, 0, screenSize.width() * 0.8, screenSize.height() * 0.9);
+    table->setGeometry(screenSize.width() * 0.1, 0, screenSize.width() * 0.875, screenSize.height() * 0.95);
     table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     table->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     loadfile();
 
     //loads the current week into the table on start of application
     loadWeek();
-
-    setMouseTracking(true);
 }
 
 //function closes main window
@@ -71,19 +70,21 @@ void MainWindow::AddNewGroup(){
     //pop up for when the user click on the add group in the group button dropdown
     QDialog *dialog = new QDialog();
     dialog->setWindowModality(Qt::WindowModality::ApplicationModal);
-    dialog->setMinimumHeight(200);
-    dialog->setMinimumWidth(480);
+    dialog->setMinimumHeight(100);
+    dialog->setMinimumWidth(350);
+    dialog->setMaximumHeight(120);
+    dialog->setMaximumWidth(375);
     dialog->setStyleSheet("QDialog {background-color: rgb(143,188,143)}");
 
     //The place for the user to enter the name of the new Group
-    QLabel *Label = new QLabel("Enter a Name for the new Group", dialog);
-    Label->setGeometry(25, 10, 400, 20);
+    QLabel *Label = new QLabel("New Group Name: ", dialog);
+    Label->setGeometry(25, 10, 100, 20);
     QLineEdit *Group = new QLineEdit(dialog);
-    Group->setGeometry(150, 10, 100, 20);
+    Group->setGeometry(135, 10, 150, 20);
 
     //The user must actually click on the submit button to save the new group with the saveGroup function
     QPushButton *submitButton = new QPushButton("submit", dialog);
-    submitButton->setGeometry(350,275, 100,20);
+    submitButton->setGeometry(250,75, 100,20);
     connect(submitButton,&QPushButton::clicked, this,  [=]() { saveGroup(dialog, Group->text()); });
     dialog->show();
 }
@@ -138,7 +139,9 @@ void MainWindow::DeleteAGroup(){
     QDialog *dialog = new QDialog();
     dialog->setWindowModality(Qt::WindowModality::ApplicationModal);
     dialog->setMinimumHeight(100);
-    dialog->setMinimumWidth(480);
+    dialog->setMinimumWidth(350);
+    dialog->setMaximumHeight(120);
+    dialog->setMaximumWidth(375);
     dialog->setStyleSheet("QDialog {background-color: rgb(143,188,143)}");
 
     //a place for the user to select the group to remove
@@ -154,7 +157,7 @@ void MainWindow::DeleteAGroup(){
 
     //if the user wishes to save the removal of the group they must clcik sumbit in order to call the saveremovalofgroup function
     QPushButton *submitButton = new QPushButton("submit", dialog);
-    submitButton->setGeometry(350,100, 100,20);
+    submitButton->setGeometry(250,75, 100,20);
     connect(submitButton,&QPushButton::clicked, this,  [=]() { saveRemovalOfGroup(dialog, GroupBox->currentText()); });
     dialog->show();
 }
@@ -302,7 +305,7 @@ void MainWindow::loadWeek(){
                 QPushButton *TaskVisualButton = new QPushButton(TaskStorage[trackingdate.addDays(column).dayOfYear()][row].name);
                 table->setCellWidget(row, column, TaskVisualButton);
                 TaskInfoVisualEffect(TaskVisualButton, &TaskStorage[trackingdate.addDays(column).dayOfYear()][row]);
-                connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { TaskButton(trackingdate.addDays(column).dayOfYear(), row); });
+                TaskPressedDuration(TaskVisualButton, trackingdate.addDays(column).dayOfYear(), row);
             }
         }
     }
@@ -352,7 +355,7 @@ void MainWindow::on_MonthView_clicked()
                     QPushButton *TaskVisualButton = new QPushButton(TaskStorage[(startofMonth + i)][k].name);
                     layoutOfContainer->addWidget(TaskVisualButton);
                     TaskInfoVisualEffect(TaskVisualButton, &TaskStorage[(startofMonth + i)][k]);
-                    connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { TaskButton(startofMonth + i, k); });
+                    TaskPressedDuration(TaskVisualButton, startofMonth + i, k);
                 }
             }
             //adds the container to the table in the repective box
@@ -424,20 +427,132 @@ void MainWindow::on_Next_clicked()
 void MainWindow::on_pushButton_clicked()
 {
     //Name of label while dragging
-    label = new QLabel("Task", this);
+    label = new QLabel("  Task", this);
     label->setStyleSheet("QLabel { background-color : gray; color : black; }");
 
     //Places the label once created where the users cursor is at
     label->setGeometry( mapFromGlobal(QCursor::pos()).x(), mapFromGlobal(QCursor::pos()).y(), 50, 40);
-    label->setMouseTracking(true);
     label->show();
 
     //sets the private variable dragging to true for other fuctions to use
     dragging = true;
+    grabMouse();
 }
 
-void MainWindow::movetask(QDialog *dialog, int column, int row){
-    dialog->close();
+//making the label follow the user cursor
+void MainWindow::mouseMoveEvent(QMouseEvent *event)
+{
+    if(label && (dragging == true)){
+        label->move(mapFromGlobal(QCursor::pos()) - QPoint(label->width() / 2, label->height() / 2));
+    }
+}
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    savefile();
+    event->accept();
+}
+
+//handles droping the task into the table
+void MainWindow::mousePressEvent(QMouseEvent *event)
+{
+    //only takes action after clicking on create task button
+    if((label) && (dragging == true) ){
+        //Gets the cursors postion and uses it to determine which box on the table they are clicking on
+        QPoint pos = table->mapFromGlobal(QCursor::pos());
+        QModelIndex cords = table->indexAt(pos);
+
+        //if the coordinates of the click when choosing place to drop are valid  procceds to drop
+        if(cords.isValid()){
+            //since we will be using row and column often made vaiables to reduce calls to cords variable
+            int row = cords.row();
+            int column = cords.column();
+
+            //The data type that will store the new task info as well as the visual button that will represent it on the table
+            Task newTask;
+            if(movingtask){
+                newTask = tempMoving;
+            }
+            QPushButton *TaskVisualButton = new QPushButton("New Task", this);
+            bool placed = false;
+
+            //checks if the box on the table clicked is empty in week view to ensure user is not attempting to creaste a task where one alreay resides
+            if(!table->cellWidget(row, column) && (monthViewActive == false)){
+                //places the visual button onto the table at specified location
+                table->setCellWidget(row, column, TaskVisualButton);
+                //places the datatype into the table at appropite date that the table and array line up on
+                TaskStorage[trackingdate.addDays(column).dayOfYear()][row] = newTask;
+                //connects the visual button to the right task in the array so that when the button is click on the table it will change the correct task
+                connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { TaskButton(trackingdate.addDays(column).dayOfYear() ,row); });
+                placed = true;
+            }
+            //when creating a new task and dropping in during month view is handled differently then week view since each box in the table now represents a day instead a individual task
+            else if(monthViewActive){
+                //only allows placing the tasks in the first 28 to 31 days boxes in the table depending on month to ensure user does not place task in boxes that are blank and not associated with any day
+                if((column + (row * 7) + 1) < trackingdate.daysInMonth() + 1){
+                    //To write and read to the right place in the array the day int value is calculated ie jan 1 = 1 and dec 31 = 365
+                    int GridDay = trackingdate.addDays(-trackingdate.day()+ (column + (row * 7) + 1)).dayOfYear();
+                    //finds an empty spot in the array for that day to store the task in since each day has five tasks asscoiated being the second demension of the array
+                    int count = 0;
+                    while(!TaskStorage[GridDay][count].name.isEmpty()){
+                        count++;
+                    }
+                    //Since count didnt go past 5 that means it found a valid spot for the task and the table box only holds less then 5 visual buttons a task can be placed
+                    if(count != 5 && table->cellWidget(row,column)->layout()->count() != 6){
+                        //Grabs the container that holds the buttons in the box of the table
+                        QWidget *container = table->cellWidget(row,column);
+                        //adds a new visual button to the container
+                        container->layout()->addWidget(TaskVisualButton);
+                        //sets the color of the button
+                        TaskVisualButton->setStyleSheet("background-color: rgb(143,188,143)");
+                        //creates a datatype in the array for that date
+                        TaskStorage[GridDay][count] = newTask;
+                        //connect the button to that datatype
+                        connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { TaskButton(GridDay ,count); });
+                        placed = true;
+                    }
+                }
+            }
+            if(placed){
+                if(movingtask){
+                    if(monthViewActive){
+                        MonthChange = true;
+                        on_MonthView_clicked();
+                        MonthChange = false;
+                    }else{
+                        loadWeek();
+                    }
+                }
+                //cleans up the label for user visual feedback since no longer needed
+                movingtask = false;
+                delete label;
+                label = nullptr;
+                //make sure it know that nothing is being dragged anymore
+                dragging = false;
+                releaseMouse();
+
+            }
+        }
+    }
+}
+
+//this fuction determines if the task on table is being clicked for opening edit menu or attempting to drag task to new date
+void MainWindow::TaskPressedDuration(QPushButton *task, int column, int row){
+    //creates a timer for each button that starts once pressed
+    QTimer *pressedDuration = new QTimer(task);
+    //starts timer when pressed
+    connect(task, &QPushButton::pressed, this, [=]() { pressedDuration->start(400); });
+    //if short click opend edit menu
+    connect(task, &QPushButton::released, this, [=]() {
+        if(pressedDuration->isActive()){
+            pressedDuration->stop();
+            TaskButton(column, row);
+        }
+    });
+    //if time runs out it means user is attempting to drag task
+    connect(pressedDuration, &QTimer::timeout, this, [=]() { movetask(column, row); });
+}
+
+void MainWindow::movetask(int column, int row){
     movingtask = true;
     tempMoving = TaskStorage[column][row];
 
@@ -546,11 +661,6 @@ void MainWindow::TaskButton(int column, int row)
         GroupBox->setCurrentIndex(0);
     }
 
-    if(!ListViewActive){
-        QPushButton *movetaskbutton = new QPushButton("Move task", dialog);
-        movetaskbutton->setGeometry(250, 280, 100, 20);
-        connect(movetaskbutton,&QPushButton::clicked, this,  [=]() { movetask(dialog, column, row); });
-    }
     //The submit button in the edit menu that will handle saving the info
     QPushButton *submitButton = new QPushButton("submit", dialog);
     submitButton->setGeometry(350,320, 100,30);
@@ -600,7 +710,6 @@ void MainWindow::saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit 
         selectedTask->group.clear();
     }
 
-    // selectedTask->priority = PriorityBox->currentText();//maybe optimize, https://stackoverflow.com/questions/16955918/qt-using-enums-with-qcombobox
     if(PriorityBox->currentText() == "Low"){
         selectedTask->priority = Task::Low;
     } else if(PriorityBox->currentText() == "Mid"){
@@ -816,7 +925,7 @@ void MainWindow::on_ListView_clicked()
 
         //fix styling of list view also get buttons to show up
         area = new QScrollArea(this);
-        area->setGeometry( 175, 0, screen()->availableGeometry().size().width() * 0.8, screen()->availableGeometry().size().height() * 0.875);
+        area->setGeometry( 175, 0, screen()->availableGeometry().size().width() * 0.9, screen()->availableGeometry().size().height() * 0.975);
         area->show();
         area->setWidgetResizable(true);
         area->setStyleSheet("background-color: rgb(210,240,210);");
@@ -828,11 +937,11 @@ void MainWindow::on_ListView_clicked()
 
         QPushButton *LoadPrevTasks = new QPushButton("Load Previous Tasks");
         QPushButton *LoadNextTasks = new QPushButton("Load Next Tasks");
-        LoadNextTasks->setFixedSize(screen()->availableGeometry().size().width() * 0.725,200);
+        LoadNextTasks->setFixedSize(screen()->availableGeometry().size().width() * 0.825,200);
         mainlayout->setAlignment(Qt::AlignCenter);
-        LoadNextTasks->setStyleSheet("QPushButton{background-color: rgb(70,220,50);} QPushButton:hover {background-color: rgb(90,180,90); }");
-        LoadPrevTasks->setStyleSheet("QPushButton{background-color: rgb(70,220,50);} QPushButton:hover {background-color: rgb(90,180,90); }");
-        LoadPrevTasks->setFixedSize(screen()->availableGeometry().size().width() * 0.725,200);
+        LoadNextTasks->setStyleSheet("QPushButton{background-color: rgb(130,220,130);} QPushButton:hover {background-color: rgb(110,200,110); }");
+        LoadPrevTasks->setStyleSheet("QPushButton{background-color: rgb(130,220,130);} QPushButton:hover {background-color: rgb(110,200,110); }");
+        LoadPrevTasks->setFixedSize(screen()->availableGeometry().size().width() * 0.825,200);
 
         connect(LoadPrevTasks, &QPushButton::clicked, this, [=]() { ListLoadingState = false; LoadPrevList(listDateStart - 1, taskLayout); });
         connect(LoadNextTasks, &QPushButton::clicked, this, [=]() { ListLoadingState = true; LoadNextList(listDateEnd + 1, taskLayout); });
@@ -870,10 +979,11 @@ void MainWindow::LoadNextList(int start,  QVBoxLayout *layout){
                 tasksfound++;
                 QWidget *taskcard = new QWidget();
                 QLabel *carddate = new QLabel(DateFormatMonthDay(start));
-                carddate->setFixedSize(screen()->availableGeometry().size().width() * 0.2,200);
+                carddate->setFixedSize(screen()->availableGeometry().size().width() * 0.3,200);
                 carddate->setAlignment(Qt::AlignCenter);
                 QHBoxLayout *innerlayout = new QHBoxLayout();
-                taskcard->setStyleSheet("QWidget{border: 2px solid black;} QWidget:hover {background-color: rgb(90,180,90);}");
+                taskcard->setObjectName("Card");
+                taskcard->setStyleSheet("QWidget{border: 2px solid black;} QWidget#Card:hover {background-color: rgb(100,100,100);}");
                 innerlayout->addWidget(carddate);
                 taskcard->setLayout(innerlayout);
                 QPushButton *TaskVisualButton = new QPushButton(TaskStorage[start][i].name);
@@ -924,7 +1034,8 @@ void MainWindow::LoadPrevList(int start, QVBoxLayout *layout){
                 carddate->setFixedSize(screen()->availableGeometry().size().width() * 0.2,200);
                 carddate->setAlignment(Qt::AlignCenter);
                 QHBoxLayout *innerlayout = new QHBoxLayout();
-                taskcard->setStyleSheet("QWidget{border: 2px solid black;} QWidget:hover {background-color: rgb(90,180,90);}");
+                taskcard->setObjectName("Card");
+                taskcard->setStyleSheet("QWidget{border: 2px solid black;} QWidget#Card:hover {background-color: rgb(100,100,100);}");
                 innerlayout->addWidget(carddate);
                 taskcard->setLayout(innerlayout);
                 QPushButton *TaskVisualButton = new QPushButton(TaskStorage[start][i].name);
@@ -962,19 +1073,19 @@ void MainWindow::on_Link_clicked()
 {
     QDialog *dialog = new QDialog();
     dialog->setWindowModality(Qt::WindowModality::ApplicationModal);
-    dialog->setMinimumHeight(320);
+    dialog->setMinimumHeight(120);
     dialog->setMinimumWidth(480);
     dialog->setStyleSheet("QDialog {background-color: rgb(143,188,143)}");
 
     //
-    QLabel *LabelName = new QLabel("Enter  Prerequisite:                                           Enter  Requisite: ", dialog);
+    QLabel *LabelName = new QLabel("Enter  Prerequisite:                                                       Enter  Requisite: ", dialog);
     LabelName->setGeometry(25, 10, 400, 20);
     QComboBox *Prerequisite = new QComboBox(dialog);
     Prerequisite->setEditable(true);
-    Prerequisite->setGeometry(300, 100, 200, 30);
+    Prerequisite->setGeometry(300, 50, 200, 30);
     QComboBox *Requisite = new QComboBox(dialog);
     Requisite->setEditable(true);
-    Requisite->setGeometry(25, 100, 200, 30);
+    Requisite->setGeometry(25, 50, 200, 30);
 
     //
     for(int i = 0; i < 366; i++){
@@ -989,7 +1100,7 @@ void MainWindow::on_Link_clicked()
 
     //
     QPushButton *submitButton = new QPushButton("submit", dialog);
-    submitButton->setGeometry(350,275, 100,20);
+    submitButton->setGeometry(375,100, 100,20);
     connect(submitButton,&QPushButton::clicked, this,  [=]() { saveLink(dialog, Prerequisite->currentData().toString(), Requisite->currentData().toString() ); });
     dialog->show();
 }
