@@ -91,6 +91,10 @@ void MainWindow::AddNewGroup(){
 
 //saves the group added using the addNewgroup function
 void MainWindow::saveGroup( QDialog *dialog, QString group){
+    if(group.isEmpty()){
+        dialog->close();
+        return;
+    }
     //adds the new group to the group array, incrments the amount of groups, and adds the group as a button in the groups dropdown
     Groups[LastGroup] = group;
     LastGroup++;
@@ -1102,7 +1106,7 @@ void MainWindow::on_Link_clicked()
     dialog->setMinimumWidth(480);
     dialog->setStyleSheet("QDialog {background-color: rgb(143,188,143)}");
 
-    //
+    //dialog box lables and input boxes
     QLabel *LabelName = new QLabel("Enter  Prerequisite:                                                       Enter  Requisite: ", dialog);
     LabelName->setGeometry(25, 10, 400, 20);
     QComboBox *Prerequisite = new QComboBox(dialog);
@@ -1112,7 +1116,7 @@ void MainWindow::on_Link_clicked()
     Requisite->setEditable(true);
     Requisite->setGeometry(25, 50, 200, 30);
 
-    //
+    //creates selectable list for dropdown options in linking
     for(int i = 0; i < 366; i++){
         for(int j = 0; j < 5; j++){
             Task &task = TaskStorage[i][j];
@@ -1127,7 +1131,6 @@ void MainWindow::on_Link_clicked()
         }
     }
 
-    //
     QPushButton *submitButton = new QPushButton("submit", dialog);
     submitButton->setGeometry(375,100, 100,20);
     connect(submitButton,&QPushButton::clicked, this,  [=]() { saveLink(dialog, Prerequisite->currentData().toString(), Requisite->currentData().toString() ); });
@@ -1136,6 +1139,13 @@ void MainWindow::on_Link_clicked()
 
 //adds infomration to the respective tasks on there linked counterpart
 void MainWindow::saveLink(QDialog *dialog, QString Prerequisite , QString Requisite){
+
+    //prevents empty submission which causes crash
+    if(Prerequisite.isEmpty() || Requisite.isEmpty()){
+        dialog->close();
+        return;
+    }
+
     QStringList prePos = Prerequisite.split('|');
     QStringList reqPos = Requisite.split('|');
     Task* PreTask = &TaskStorage[reqPos[0].toInt()][reqPos[1].toInt()];
