@@ -484,6 +484,16 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
                 //connects the visual button to the right task in the array so that when the button is click on the table it will change the correct task
                 connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { TaskButton(trackingdate.addDays(column).dayOfYear() ,row); });
                 placed = true;
+                //fixes linking if moved
+                Task current = TaskStorage[trackingdate.addDays(column).dayOfYear()][row];
+                if(current.prerequisiteDay > -1  && current.prerequisiteSlot > -1 && !TaskStorage[current.prerequisiteDay][current.prerequisiteSlot].name.isEmpty()){
+                    TaskStorage[current.prerequisiteDay][current.prerequisiteSlot].requisiteDay = trackingdate.addDays(column).dayOfYear();
+                    TaskStorage[current.prerequisiteDay][current.prerequisiteSlot].requisiteSlot = row;
+                }
+                if(current.requisiteDay > -1 && current.requisiteSlot > -1 && !TaskStorage[current.requisiteDay][current.requisiteSlot].name.isEmpty()){
+                    TaskStorage[current.requisiteDay][current.requisiteSlot].prerequisiteDay = trackingdate.addDays(column).dayOfYear();
+                    TaskStorage[current.requisiteDay][current.requisiteSlot].prerequisiteSlot = row;
+                }
             }
             //when creating a new task and dropping in during month view is handled differently then week view since each box in the table now represents a day instead a individual task
             else if(monthViewActive){
@@ -509,6 +519,16 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
                         //connect the button to that datatype
                         connect(TaskVisualButton, &QPushButton::clicked, this, [=]() { TaskButton(GridDay ,count); });
                         placed = true;
+                        //fixes linking if moved
+                        Task current = TaskStorage[GridDay][count];
+                        if(current.prerequisiteDay > -1  && current.prerequisiteSlot > -1 && !TaskStorage[current.prerequisiteDay][current.prerequisiteSlot].name.isEmpty()){
+                            TaskStorage[current.prerequisiteDay][current.prerequisiteSlot].requisiteDay = GridDay;
+                            TaskStorage[current.prerequisiteDay][current.prerequisiteSlot].requisiteSlot = count;
+                        }
+                        if(current.requisiteDay > -1 && current.requisiteSlot > -1 && !TaskStorage[current.requisiteDay][current.requisiteSlot].name.isEmpty()){
+                            TaskStorage[current.requisiteDay][current.requisiteSlot].prerequisiteDay = GridDay;
+                            TaskStorage[current.requisiteDay][current.requisiteSlot].prerequisiteSlot = count;
+                        }
                     }
                 }
             }
@@ -639,7 +659,6 @@ void MainWindow::TaskButton(int column, int row)
     if(selectedTask->requisiteDay > -1 && selectedTask->requisiteSlot > -1 && !TaskStorage[selectedTask->requisiteDay][selectedTask->requisiteSlot].name.isEmpty()){
         unlinkreq->setText( TaskStorage[selectedTask->requisiteDay][selectedTask->requisiteSlot].name);
         connect(unlinkreq, &QPushButton::clicked, this, [=]() { Unlink(column, row, selectedTask->requisiteDay, selectedTask->requisiteSlot ); });
-
     }
 
     //Tells the user to enter task status in the dropdown field
@@ -747,6 +766,12 @@ void MainWindow::deleteTaskInfo(QDialog *dialog, int column, int row){
 
     //The Data Type Task is created with no information a blank
     Task blank;
+    Task discardtask = TaskStorage[column][row];
+    TaskStorage[discardtask.prerequisiteDay][discardtask.prerequisiteSlot].requisiteDay = -1;
+    TaskStorage[discardtask.prerequisiteDay][discardtask.prerequisiteSlot].requisiteSlot = -1;
+    TaskStorage[discardtask.requisiteDay][discardtask.requisiteSlot].prerequisiteDay = -1;
+    TaskStorage[discardtask.requisiteDay][discardtask.requisiteSlot].prerequisiteSlot = -1;
+
 
     //The blank is used to overwirte any saved infomartion of the task that is saved in order to return to how it was before to create the effect of deletion
     TaskStorage[column][row] = blank;
@@ -1092,8 +1117,12 @@ void MainWindow::on_Link_clicked()
         for(int j = 0; j < 5; j++){
             Task &task = TaskStorage[i][j];
             if(!task.name.isEmpty()){
-                Prerequisite->addItem(task.name ,  QString::number(i) + "|" +  QString::number(j));
-                Requisite->addItem(task.name ,  QString::number(i) + "|" +  QString::number(j));
+                if(task.prerequisiteDay == -1){
+                    Prerequisite->addItem(task.name ,  QString::number(i) + "|" +  QString::number(j));
+                }
+                if(task.requisiteDay == -1){
+                    Requisite->addItem(task.name ,  QString::number(i) + "|" +  QString::number(j));
+                }
             }
         }
     }
@@ -1111,11 +1140,15 @@ void MainWindow::saveLink(QDialog *dialog, QString Prerequisite , QString Requis
     QStringList reqPos = Requisite.split('|');
     Task* PreTask = &TaskStorage[reqPos[0].toInt()][reqPos[1].toInt()];
     Task* reqTask = &TaskStorage[prePos[0].toInt()][prePos[1].toInt()];
+    //dont allow linking to self
+    if((reqPos[0].toInt() == prePos[0].toInt()) && (reqPos[1].toInt() == prePos[1].toInt())){
+        dialog->close();
+        return;
+    }
     reqTask->prerequisiteDay = reqPos[0].toInt();
     reqTask->prerequisiteSlot = reqPos[1].toInt();
     PreTask->requisiteDay =   prePos[0].toInt();
     PreTask->requisiteSlot = prePos[1].toInt();
-    dialog->close();
     if(monthViewActive == false){
         loadWeek();
     }else{
@@ -1123,6 +1156,7 @@ void MainWindow::saveLink(QDialog *dialog, QString Prerequisite , QString Requis
         on_MonthView_clicked();
         MonthChange = false;
     }
+    dialog->close();
 }
 
 //a pop up that appers when a task is changed for a short time
