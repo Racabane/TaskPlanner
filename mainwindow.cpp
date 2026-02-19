@@ -1139,7 +1139,6 @@ void MainWindow::on_Link_clicked()
 
 //adds infomration to the respective tasks on there linked counterpart
 void MainWindow::saveLink(QDialog *dialog, QString Prerequisite , QString Requisite){
-
     //prevents empty submission which causes crash
     if(Prerequisite.isEmpty() || Requisite.isEmpty()){
         dialog->close();
