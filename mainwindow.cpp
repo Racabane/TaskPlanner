@@ -20,7 +20,16 @@ MainWindow::MainWindow(QWidget *parent)
     //Sets up the group button dropdown with the basic add group and deletegroup options
     QPushButton *GroupsDrop = ui->toolButton;
     GroupPopUp = new QWidget(nullptr, Qt::Popup);
-    groupLayout = new QVBoxLayout(GroupPopUp);
+    GroupPopUp->setFixedHeight(200);
+
+    QScrollArea *scrollgroups = new QScrollArea(GroupPopUp);
+    scrollgroups->setWidgetResizable(true);
+
+    QWidget *scrollcontianer = new QWidget();
+    groupLayout = new QVBoxLayout(scrollcontianer);
+    scrollgroups->setWidget(scrollcontianer);
+    scrollgroups->setGeometry(0,0, 150, 200);
+
     connect(GroupsDrop, &QPushButton::clicked, this, [=]() { GroupsDropDown(GroupsDrop);});
     QPushButton *AddGroup = new QPushButton("Add Group");
     QPushButton *DeleteGroup = new QPushButton("Delete Group");
@@ -93,6 +102,14 @@ void MainWindow::AddNewGroup(){
 void MainWindow::saveGroup( QDialog *dialog, QString group){
     if(group.isEmpty()){
         dialog->close();
+        return;
+    }
+    if(LastGroup == 10){
+        QLabel *Popup = new QLabel("Maximum Number of Groups!", dialog);
+        Popup->setGeometry(25, 40, 200, 20);
+        Popup->setStyleSheet("background-color: rgb(240,100,100); border-radius: 5px");
+        Popup->show();
+        QTimer::singleShot(3000, Popup, &QObject::deleteLater);
         return;
     }
     //adds the new group to the group array, incrments the amount of groups, and adds the group as a button in the groups dropdown
@@ -235,6 +252,9 @@ void MainWindow::loadfile(){
     QStringList values =  QString::fromStdString(line).split('|');
     LastGroup = 0;
     for(int i = 1; i < values.size(); i++){
+        if(values[i].trimmed().isEmpty()){
+            continue;
+        }
         Groups[i - 1] = values[i];
         QPushButton *groupbutton = new QPushButton(values[i]);
         groupbutton->setStyleSheet("QPushButton {background-color: blue;} QPushButton:hover {background-color: rgb(90,90,180); }");
@@ -300,7 +320,13 @@ void MainWindow::loadWeek(){
     //loops through the columns and rows of the table to fill in any tasks set for thise days
     for(int column = 0; column < 7; column++){
         //sets the header of the columns to have the numerical date of the month and day of week
-        table->setHorizontalHeaderItem(column, new QTableWidgetItem(table->horizontalHeaderItem(column)->text() + " " + QString::number(trackingdate.addDays(column).day())));
+        int datenumber = trackingdate.addDays(column).day();
+        QTableWidgetItem *datenumberlabel = new QTableWidgetItem(table->horizontalHeaderItem(column)->text() + " " + QString::number(datenumber));
+        table->setHorizontalHeaderItem(column, datenumberlabel);
+        //colors the day of week to let user know
+        if(trackingdate.addDays(column).dayOfYear() == QDate::currentDate().dayOfYear()){
+            datenumberlabel->setForeground(QBrush(Qt::blue));
+        }
 
         for(int row = 0; row < 5; row++){
             //if a task is found in task storage the matches the date that the table is currently veiwing
@@ -333,6 +359,11 @@ void MainWindow::on_MonthView_clicked()
         //uses helper fuction to determine the week cycle based on the first day of month ie  if first day is wednsday then it will go wednsday, thursday, friday...
         getWeekDayCycle(trackingdate.addDays(-trackingdate.day() + 1));
 
+        //reset header so not blue from week view
+        for(int l = 0; l < table->columnCount() ; l++){
+            table->horizontalHeaderItem(l)->setForeground(QBrush(Qt::white));
+        }
+
         //gets the first day of the month as a int value fror the array to use to select realted task
         int startofMonth = trackingdate.dayOfYear() - trackingdate.day() + 1;
         //variables to keep track of the row and column in the table to place the contianer holding the days tasks
@@ -348,8 +379,14 @@ void MainWindow::on_MonthView_clicked()
 
             //creates a label to hold the day number and displays it in the corresponding box in the table
             QLabel *Daynumber = new QLabel(QString::number(i + 1));
-            Daynumber->setFixedSize(50,20);
+            Daynumber->setFixedSize(35,35);
             layoutOfContainer->addWidget(Daynumber);
+
+            //colors the current date in month view with a red circle to make it apparent
+            if(trackingdate.addDays(i - trackingdate.day() + 1).dayOfYear() == QDate::currentDate().dayOfYear()){
+                Daynumber->setStyleSheet("color: white; border: 1px solid red; border-radius: 17px; background-color: red;");
+                Daynumber->setAlignment(Qt::AlignCenter);
+            }
 
             //for each day it will cycle through all five slots meant for tasks asscoiated with that day
             for(int k = 0; k < 5; k++){
@@ -362,6 +399,9 @@ void MainWindow::on_MonthView_clicked()
                     TaskPressedDuration(TaskVisualButton, startofMonth + i, k);
                 }
             }
+            QLabel *fixcentering = new QLabel();
+            layoutOfContainer->addWidget(fixcentering);
+
             //adds the container to the table in the repective box
             table->setCellWidget(week, day, container);
             //updates the row and column of the table being viewed
@@ -511,7 +551,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
                         count++;
                     }
                     //Since count didnt go past 5 that means it found a valid spot for the task and the table box only holds less then 5 visual buttons a task can be placed
-                    if(count != 5 && table->cellWidget(row,column)->layout()->count() != 6){
+                    if(count != 5 && table->cellWidget(row,column)->layout()->count() != 7){
                         //Grabs the container that holds the buttons in the box of the table
                         QWidget *container = table->cellWidget(row,column);
                         //adds a new visual button to the container
@@ -644,34 +684,33 @@ void MainWindow::TaskButton(int column, int row)
     StatusBox->addItems({"Unstarted" ,"Working", "Done"});
     StatusBox->setCurrentIndex(selectedTask->status);
 
-    QLabel *PreReq = new QLabel( "Prerequiste Task: ", dialog);
-    PreReq->setGeometry(25, 225, 150, 20);
+    QLabel *PreReq = new QLabel( "Unlink Prerequiste: ", dialog);
+    PreReq->setGeometry(25, 220, 150, 20);
 
-    QPushButton *unlinkpre = new QPushButton("None", dialog);
-    unlinkpre->setGeometry(125, 225, 150, 20);
+    QCheckBox *unlinkpre = new QCheckBox("None", dialog);
+    unlinkpre->setGeometry(130, 225, 150, 15);
 
-    QPushButton *unlinkreq = new QPushButton("None", dialog);
-    unlinkreq->setGeometry(125, 250, 150, 20);
+    QCheckBox *unlinkreq = new QCheckBox("None", dialog);
+    unlinkreq->setGeometry(130, 260, 150, 15);
 
-    QLabel *Req = new QLabel("Requiste Task: ", dialog);
-    Req->setGeometry(25, 250, 150, 20);
+    QLabel *Req = new QLabel("Unlink Requiste: ", dialog);
+    Req->setGeometry(25, 255, 100, 20);
 
     if(selectedTask->prerequisiteDay > -1  && selectedTask->prerequisiteSlot > -1 && !TaskStorage[selectedTask->prerequisiteDay][selectedTask->prerequisiteSlot].name.isEmpty()){
         unlinkpre->setText(TaskStorage[selectedTask->prerequisiteDay][selectedTask->prerequisiteSlot].name);
-        connect(unlinkpre, &QPushButton::clicked, this, [=]() { Unlink(selectedTask->prerequisiteDay, selectedTask->prerequisiteSlot, column, row); });
     }
+
     if(selectedTask->requisiteDay > -1 && selectedTask->requisiteSlot > -1 && !TaskStorage[selectedTask->requisiteDay][selectedTask->requisiteSlot].name.isEmpty()){
-        unlinkreq->setText( TaskStorage[selectedTask->requisiteDay][selectedTask->requisiteSlot].name);
-        connect(unlinkreq, &QPushButton::clicked, this, [=]() { Unlink(column, row, selectedTask->requisiteDay, selectedTask->requisiteSlot ); });
+        unlinkreq->setText(TaskStorage[selectedTask->requisiteDay][selectedTask->requisiteSlot].name);
     }
 
     //Tells the user to enter task status in the dropdown field
     QLabel *GroupLabel = new QLabel("Group: ", dialog);
-    GroupLabel->setGeometry(25, 280, 100, 20);
+    GroupLabel->setGeometry(250, 225, 100, 20);
 
     //The field where users select a group
     QComboBox *GroupBox = new QComboBox(dialog);
-    GroupBox->setGeometry(100, 280, 100, 20);
+    GroupBox->setGeometry(300, 225, 100, 20);
     GroupBox->addItem("None");
     for(int i = 0; i < LastGroup; i++){
         if(!Groups[i].isEmpty()){
@@ -685,12 +724,13 @@ void MainWindow::TaskButton(int column, int row)
     }
 
     //The submit button in the edit menu that will handle saving the info
-    QPushButton *submitButton = new QPushButton("submit", dialog);
+    QPushButton *submitButton = new QPushButton("Submit", dialog);
     submitButton->setGeometry(350,320, 100,30);
-    connect(submitButton,&QPushButton::clicked, this,  [=]() { saveTaskInfo(dialog, column, row, Name, Desc, StatusBox, PriorityBox, GroupBox); });
+    connect(submitButton,&QPushButton::clicked, this,  [=]() { saveTaskInfo(dialog, column, row, Name, Desc, StatusBox, PriorityBox, GroupBox, unlinkpre, unlinkreq); });
 
     //The delete button in the edit menu that will handle deleting the info
-    QPushButton *deleteButton = new QPushButton("delete", dialog);
+    QPushButton *deleteButton = new QPushButton("Delete", dialog);
+    deleteButton->setStyleSheet("background-color: rgb(200,100,100); font-weight: bold; color: black;");
     deleteButton->setGeometry(25,320, 100,30);
     connect(deleteButton,&QPushButton::clicked, this,  [=]() { deleteTaskInfo(dialog, column, row); });
 
@@ -716,7 +756,7 @@ void MainWindow::Unlink(int preday, int preslot, int reqday, int reqslot){
 }
 
 //This function is for when the user clicks the submit button within the edit menu that is used for editing tasks
-void MainWindow::saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit *Name, QPlainTextEdit *Desc, QComboBox *StatusBox, QComboBox *PriorityBox, QComboBox *GroupBox ){
+void MainWindow::saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit *Name, QPlainTextEdit *Desc, QComboBox *StatusBox, QComboBox *PriorityBox, QComboBox *GroupBox, QCheckBox *unlinkpre, QCheckBox *unlinkreq ){
     //Gets the relavent task within the task storage that users is editing
     Task *selectedTask = &TaskStorage[column][row];
 
@@ -747,6 +787,13 @@ void MainWindow::saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit 
         selectedTask->status = Task::Working;
     } else{
         selectedTask->status = Task::Completed;
+    }
+
+    if(unlinkpre->isChecked()){
+        Unlink(selectedTask->prerequisiteDay, selectedTask->prerequisiteSlot, column, row);
+    }
+    if(unlinkreq->isChecked()){
+        Unlink(column, row, selectedTask->requisiteDay, selectedTask->requisiteSlot );
     }
 
     //refreshes the tasks in the table to show the reflected changes to the task
@@ -968,8 +1015,8 @@ void MainWindow::on_ListView_clicked()
         QPushButton *LoadNextTasks = new QPushButton("Load Next Tasks");
         LoadNextTasks->setFixedSize(screen()->availableGeometry().size().width() * 0.825,200);
         mainlayout->setAlignment(Qt::AlignCenter);
-        LoadNextTasks->setStyleSheet("QPushButton{background-color: rgb(130,220,130);} QPushButton:hover {background-color: rgb(110,200,110); }");
-        LoadPrevTasks->setStyleSheet("QPushButton{background-color: rgb(130,220,130);} QPushButton:hover {background-color: rgb(110,200,110); }");
+        LoadNextTasks->setStyleSheet("QPushButton{background-color: rgb(130,220,130); font-size: 18pt;} QPushButton:hover {background-color: rgb(110,200,110); }");
+        LoadPrevTasks->setStyleSheet("QPushButton{background-color: rgb(130,220,130); font-size: 18pt;} QPushButton:hover {background-color: rgb(110,200,110); }");
         LoadPrevTasks->setFixedSize(screen()->availableGeometry().size().width() * 0.825,200);
 
         connect(LoadPrevTasks, &QPushButton::clicked, this, [=]() { ListLoadingState = false; LoadPrevList(listDateStart - 1, taskLayout); });
@@ -1012,7 +1059,7 @@ void MainWindow::LoadNextList(int start,  QVBoxLayout *layout){
                 carddate->setAlignment(Qt::AlignCenter);
                 QHBoxLayout *innerlayout = new QHBoxLayout();
                 taskcard->setObjectName("Card");
-                taskcard->setStyleSheet("QWidget{border: 2px solid black;} QWidget#Card:hover {background-color: rgb(100,100,100);}");
+                taskcard->setStyleSheet("QWidget{border: 2px solid black; font-size: 18pt;} QWidget#Card:hover {background-color: rgb(100,100,100);}");
                 innerlayout->addWidget(carddate);
                 taskcard->setLayout(innerlayout);
                 QPushButton *TaskVisualButton = new QPushButton(TaskStorage[start][i].name);
@@ -1174,7 +1221,7 @@ void MainWindow::CreatedPopUp(){
     Popup->setStyleSheet("background-color: rgb(210,240,210); border-radius: 5px");
     Popup->setGeometry(15, 575, 140, 75);
     Popup->show();
-    QTimer::singleShot(2000, Popup, &QObject::deleteLater);
+    QTimer::singleShot(3000, Popup, &QObject::deleteLater);
 }
 
 //a pop up that appers when a task is removed for a short time
@@ -1183,5 +1230,5 @@ void MainWindow::DeletedPopUp(){
     Popup->setGeometry(15, 575, 140, 75);
     Popup->setStyleSheet("background-color: rgb(210,240,210); border-radius: 5px");
     Popup->show();
-    QTimer::singleShot(2000, Popup, &QObject::deleteLater);
+    QTimer::singleShot(3000, Popup, &QObject::deleteLater);
 }

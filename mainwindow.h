@@ -15,6 +15,7 @@
 #include <QTimer>
 #include <QSet>
 #include <QGraphicsOpacityEffect>
+#include <QCheckBox>
 
 
 QT_BEGIN_NAMESPACE
@@ -46,7 +47,7 @@ private slots:
     void loadWeek();
     void on_Prev_clicked();
     void on_Next_clicked();
-    void saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit *Name, QPlainTextEdit *Desc, QComboBox *StatusBox, QComboBox *PriorityBox, QComboBox *GroupBox);
+    void saveTaskInfo( QDialog *dialog, int column, int row,  QLineEdit *Name, QPlainTextEdit *Desc, QComboBox *StatusBox, QComboBox *PriorityBox, QComboBox *GroupBox, QCheckBox *unlinkpre, QCheckBox *unlinkreq);
     void deleteTaskInfo( QDialog *dialog, int column, int row);
     void on_MonthView_clicked();
     QString getMonthName(QDate date);
