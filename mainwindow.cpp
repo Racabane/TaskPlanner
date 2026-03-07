@@ -21,14 +21,14 @@ MainWindow::MainWindow(QWidget *parent)
     QPushButton *GroupsDrop = ui->toolButton;
     GroupPopUp = new QWidget(nullptr, Qt::Popup);
     GroupPopUp->setFixedHeight(200);
-
+    GroupPopUp->setStyleSheet("background-color: gray;");
     QScrollArea *scrollgroups = new QScrollArea(GroupPopUp);
     scrollgroups->setWidgetResizable(true);
 
     QWidget *scrollcontianer = new QWidget();
     groupLayout = new QVBoxLayout(scrollcontianer);
     scrollgroups->setWidget(scrollcontianer);
-    scrollgroups->setGeometry(0,0, 150, 200);
+    scrollgroups->setGeometry(0,0, 120, 200);
 
     connect(GroupsDrop, &QPushButton::clicked, this, [=]() { GroupsDropDown(GroupsDrop);});
     QPushButton *AddGroup = new QPushButton("Add Group");
@@ -58,7 +58,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->Link->setStyleSheet(baseButtonDesign );
 
     //sizes the table on the mainwindow and strech columns and rows to match table size
-    table->setGeometry(screenSize.width() * 0.1, 0, screenSize.width() * 0.875, screenSize.height() * 0.95);
+    table->setGeometry(screenSize.width() * 0.11, 0, screenSize.width() * 0.875, screenSize.height() * 0.95);
     table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     table->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     loadfile();
@@ -1217,17 +1217,17 @@ void MainWindow::saveLink(QDialog *dialog, QString Prerequisite , QString Requis
 
 //a pop up that appers when a task is changed for a short time
 void MainWindow::CreatedPopUp(){
-    QLabel *Popup = new QLabel("Task successfully updated!", this);
+    QLabel *Popup = new QLabel("  Task successfully \n  updated!", this);
     Popup->setStyleSheet("background-color: rgb(210,240,210); border-radius: 5px");
-    Popup->setGeometry(15, 575, 140, 75);
+    Popup->setGeometry(10, 400, 120, 75);
     Popup->show();
     QTimer::singleShot(3000, Popup, &QObject::deleteLater);
 }
 
 //a pop up that appers when a task is removed for a short time
 void MainWindow::DeletedPopUp(){
-    QLabel *Popup = new QLabel("Task successfully removed!", this);
-    Popup->setGeometry(15, 575, 140, 75);
+    QLabel *Popup = new QLabel("  Task successfully \n  removed!", this);
+    Popup->setGeometry(10, 400, 120, 75);
     Popup->setStyleSheet("background-color: rgb(210,240,210); border-radius: 5px");
     Popup->show();
     QTimer::singleShot(3000, Popup, &QObject::deleteLater);
