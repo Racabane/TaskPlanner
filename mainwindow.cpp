@@ -684,17 +684,17 @@ void MainWindow::TaskButton(int column, int row)
     StatusBox->addItems({"Unstarted" ,"Working", "Done"});
     StatusBox->setCurrentIndex(selectedTask->status);
 
-    QLabel *PreReq = new QLabel( "Unlink Prerequiste: ", dialog);
+    QLabel *PreReq = new QLabel( "Unlink Prerequisite: ", dialog);
     PreReq->setGeometry(25, 220, 150, 20);
 
     QCheckBox *unlinkpre = new QCheckBox("None", dialog);
-    unlinkpre->setGeometry(130, 225, 150, 15);
+    unlinkpre->setGeometry(140, 225, 150, 15);
 
     QCheckBox *unlinkreq = new QCheckBox("None", dialog);
-    unlinkreq->setGeometry(130, 260, 150, 15);
+    unlinkreq->setGeometry(140, 260, 150, 15);
 
-    QLabel *Req = new QLabel("Unlink Requiste: ", dialog);
-    Req->setGeometry(25, 255, 100, 20);
+    QLabel *Req = new QLabel("Unlink Postrequisite: ", dialog);
+    Req->setGeometry(25, 255, 150, 20);
 
     if(selectedTask->prerequisiteDay > -1  && selectedTask->prerequisiteSlot > -1 && !TaskStorage[selectedTask->prerequisiteDay][selectedTask->prerequisiteSlot].name.isEmpty()){
         unlinkpre->setText(TaskStorage[selectedTask->prerequisiteDay][selectedTask->prerequisiteSlot].name);
@@ -1154,11 +1154,11 @@ void MainWindow::on_Link_clicked()
     dialog->setStyleSheet("QDialog {background-color: rgb(143,188,143)}");
 
     //dialog box lables and input boxes
-    QLabel *LabelName = new QLabel("Enter  Prerequisite:                                                       Enter  Requisite: ", dialog);
-    LabelName->setGeometry(25, 10, 400, 20);
+    QLabel *LabelName = new QLabel("Enter Prerequisite:                                                Select Task: ", dialog);
+    LabelName->setGeometry(25, 10, 520, 20);
     QComboBox *Prerequisite = new QComboBox(dialog);
     Prerequisite->setEditable(true);
-    Prerequisite->setGeometry(300, 50, 200, 30);
+    Prerequisite->setGeometry(275, 50, 200, 30);
     QComboBox *Requisite = new QComboBox(dialog);
     Requisite->setEditable(true);
     Requisite->setGeometry(25, 50, 200, 30);
